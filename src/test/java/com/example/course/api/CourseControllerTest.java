@@ -2,6 +2,7 @@ package com.example.course.api;
 
 import com.example.course.api.controller.CourseController;
 import com.example.course.api.dto.Requset.CreateCourseRequest;
+import com.example.course.api.dto.Response.StatusResponse;
 import com.example.course.domain.Category;
 import com.example.course.domain.Course;
 import com.example.course.domain.Poi;
@@ -52,20 +53,18 @@ class CourseControllerTest {
     private JwtProvider jwtProvider;
 
     @Test
-    @DisplayName("POST /api/courses returns created course")
+    @DisplayName("POST /api/courses returns success status")
     void createCourseSuccess() throws Exception {
         Mockito.when(jwtProvider.extractCoupleId("Bearer token")).thenReturn(5678L);
         Mockito.when(courseService.createCourse(anyLong(), any(CreateCourseRequest.class)))
-                .thenReturn(course(1L, 5678L, false));
+                .thenReturn(new CourseService.CourseCreationResult(new Course(), List.of()));
 
         mockMvc.perform(post("/api/courses")
                         .header(HttpHeaders.AUTHORIZATION, "Bearer token")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(validPayload()))
                 .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.course_id").value(1L))
-                .andExpect(jsonPath("$.couple_id").value(5678L))
-                .andExpect(jsonPath("$.poi_list").isArray());
+                .andExpect(jsonPath("$.status").value("success"));
     }
 
     @Test
@@ -111,9 +110,27 @@ class CourseControllerTest {
     private String validPayload() {
         return """
                 {
-                  \"title\": \"주말 데이트 코스\",
-                  \"info\": \"서울숲 산책과 카페 방문\",
-                  \"score\": 10
+                  \"title\": \"한강 저녁 데이터 \",
+                  \"explain\": \"오늘 무드에 맞는 코스입니다~ \",
+                  \"data\": [
+                    {
+                      \"seq\": 1,
+                      \"name\": \"Blue Bottle Yeonnam\",
+                      \"category\": \"CAFE\",
+                      \"lat\": 37.56231,
+                      \"lng\": 126.92501,
+                      \"indoor\": true,
+                      \"price_level\": 2,
+                      \"open_hours\": {
+                        \"mon\": \"09:00-18:00\"
+                      },
+                      \"alcohol\": 0,
+                      \"mood_tag\": 1001,
+                      \"food_tag\": [\"COFFEE\", \"DESSERT\"],
+                      \"rating_avg\": 4.3,
+                      \"link\": \"https://example.com\"
+                    }
+                  ]
                 }
                 """;
     }

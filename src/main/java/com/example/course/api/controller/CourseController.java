@@ -2,6 +2,7 @@ package com.example.course.api.controller;
 
 import com.example.course.api.dto.Requset.CreateCourseRequest;
 import com.example.course.api.dto.Response.CourseResponse;
+import com.example.course.api.dto.Response.StatusResponse;
 import com.example.course.jwt.JwtProvider;
 import com.example.course.service.CourseService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -55,10 +56,10 @@ public class CourseController {
                     description = "Course created",
                     content = @Content(
                             mediaType = "application/json",
-                            schema = @Schema(implementation = CourseResponse.class),
+                            schema = @Schema(implementation = StatusResponse.class),
                             examples = @ExampleObject(
                                     name = "CourseCreated",
-                                    value = "{\n  \"course_id\": 1,\n  \"couple_id\": 5678,\n  \"title\": \"주말 데이트 코스\",\n  \"info\": \"서울숲 산책과 카페 방문 코스\",\n  \"score\": 10,\n  \"poi_list\": []\n}"
+                                    value = "{\n  \"status\": \"success\"\n}"
                             )
                     )
             ),
@@ -71,11 +72,11 @@ public class CourseController {
                     schema = @Schema(implementation = CreateCourseRequest.class),
                     examples = @ExampleObject(
                             name = "CreateCourse",
-                            value = "{\n  \"title\": \"주말 데이트 코스\",\n  \"info\": \"서울숲 산책과 카페 방문 코스\",\n  \"score\": 10\n}"
+                            value = "{\n  \"title\": \"한강 저녁 데이터 \",\n  \"explain\": \"오늘 무드에 맞는 코스입니다~ \",\n  \"data\": [\n    {\n      \"seq\": 1,\n      \"name\": \"Blue Bottle Yeonnam\",\n      \"category\": \"CAFE\",\n      \"lat\": 37.56231,\n      \"lng\": 126.92501,\n      \"indoor\": true,\n      \"price_level\": 2,\n      \"open_hours\": {\n        \"mon\": \"09:00-18:00\"\n      },\n      \"alcohol\": 0,\n      \"mood_tag\": 1001,\n      \"food_tag\": [\"COFFEE\", \"DESSERT\"],\n      \"rating_avg\": 4.3\n    }\n  ]\n}"
                     )
             )
     )
-    public CourseResponse createCourse(
+    public StatusResponse createCourse(
             @Parameter(
                     name = HttpHeaders.AUTHORIZATION,
                     description = "Bearer token received from the gateway",
@@ -86,7 +87,8 @@ public class CourseController {
             @Valid @RequestBody CreateCourseRequest request
     ) {
         Long coupleId = jwtProvider.extractCoupleId(authorizationHeader);
-        return CourseResponse.from(courseService.createCourse(coupleId, request));
+        courseService.createCourse(coupleId, request);
+        return StatusResponse.success();
     }
 
     @GetMapping
