@@ -19,12 +19,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.ResponseStatus;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -82,7 +77,7 @@ public class CourseController {
         if (jwt == null) {
             throw new IllegalArgumentException("Authentication is required");
         }
-        Long coupleId = jwtProvider.getCoupleIdFromToken(jwt.getTokenValue());
+        Long coupleId = jwtProvider.extractCoupleId(jwt);
         courseService.createCourse(coupleId, request);
         return StatusResponse.success();
     }
@@ -115,10 +110,45 @@ public class CourseController {
         if (jwt == null) {
             throw new IllegalArgumentException("Authentication is required");
         }
-        Long coupleId = jwtProvider.getCoupleIdFromToken(jwt.getTokenValue());
+        Long coupleId = jwtProvider.extractCoupleId(jwt);
         return courseService.findCoursesByCoupleId(coupleId)
                 .stream()
                 .map(CourseResponse::from)
                 .toList();
+    }
+
+    @DeleteMapping("/{courseId}") // course_id를 URL 경로에 추가
+    @ResponseStatus(HttpStatus.OK)
+    @Operation(
+            summary = "Delete course",
+            description = "Deletes a course belonging to the authenticated couple. The course id is read from the URL path, and the couple id from the JWT claims.", // 설명 업데이트
+            security = {@SecurityRequirement(name = "bearerAuth")}
+    )
+    @ApiResponses({
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "Course deleted",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = StatusResponse.class),
+                            examples = @ExampleObject(
+                                    name = "CourseDeleted",
+                                    value = "{\n  \"status\": \"success\"\n}"
+                            )
+                    )
+            ),
+            @ApiResponse(responseCode = "404", description = "Course not found", content = @Content)
+    })
+    public StatusResponse deleteCourse(
+            @AuthenticationPrincipal Jwt jwt,
+            @PathVariable Long courseId // URL에서 course_id를 받도록 변경
+    ) {
+        if (jwt == null) {
+            throw new IllegalArgumentException("Authentication is required");
+        }
+        Long coupleId = jwtProvider.extractCoupleId(jwt);
+        // Long courseId = jwtProvider.getCourseIdFromJwt(jwt); // JWT에서 course_id를 읽는 부분 제거
+        courseService.deleteCourse(coupleId, courseId);
+        return StatusResponse.success();
     }
 }
