@@ -30,19 +30,20 @@ public class JwtProvider {
                 .build();
     }
 
+    public Long extractCoupleId(Jwt jwt) {
+        return getCoupleIdFromToken(jwt.getTokenValue());
+    }
+
     public Long extractCoupleId(String authorizationHeader) {
         String token = resolveToken(authorizationHeader);
         return getCoupleIdFromToken(token);
     }
 
-    private String resolveToken(String authorizationHeader) {
-        if (!StringUtils.hasText(authorizationHeader) || !authorizationHeader.startsWith(BEARER_PREFIX)) {
-            throw new IllegalArgumentException("Authorization header must start with 'Bearer '");
-        }
-        return authorizationHeader.substring(BEARER_PREFIX.length());
+    public JwtDecoder getJwtDecoder() {
+        return jwtDecoder;
     }
 
-    private Long getCoupleIdFromToken(String token) {
+    public Long getCoupleIdFromToken(String token) {
         try {
             Jwt jwt = jwtDecoder.decode(token);
             Object coupleIdClaim = jwt.getClaims().get("coupleId");
@@ -60,5 +61,12 @@ public class JwtProvider {
         } catch (JwtException ex) {
             throw new IllegalArgumentException("Invalid JWT token", ex);
         }
+    }
+
+    private String resolveToken(String authorizationHeader) {
+        if (!StringUtils.hasText(authorizationHeader) || !authorizationHeader.startsWith(BEARER_PREFIX)) {
+            throw new IllegalArgumentException("Authorization header must start with 'Bearer '");
+        }
+        return authorizationHeader.substring(BEARER_PREFIX.length());
     }
 }
