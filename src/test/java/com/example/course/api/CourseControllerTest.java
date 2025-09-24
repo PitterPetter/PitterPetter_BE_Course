@@ -20,8 +20,10 @@ import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
 import org.springframework.data.jpa.mapping.JpaMetamodelMappingContext;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
+import org.springframework.security.authentication.TestingAuthenticationToken;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -55,56 +57,82 @@ class CourseControllerTest {
     @Test
     @DisplayName("POST /api/courses returns success status")
     void createCourseSuccess() throws Exception {
-        Mockito.when(jwtProvider.extractCoupleId("Bearer token")).thenReturn(5678L);
+        Mockito.when(jwtProvider.getCoupleIdFromToken("token-5678")).thenReturn(5678L);
         Mockito.when(courseService.createCourse(anyLong(), any(CreateCourseRequest.class)))
                 .thenReturn(new CourseService.CourseCreationResult(new Course(), List.of()));
 
-        mockMvc.perform(post("/api/courses")
-                        .header(HttpHeaders.AUTHORIZATION, "Bearer token")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(validPayload()))
-                .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.status").value("success"));
+        TestingAuthenticationToken authentication = jwtAuthentication();
+        SecurityContextHolder.getContext().setAuthentication(authentication);
+        try {
+            mockMvc.perform(post("/api/courses")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(validPayload()))
+                    .andExpect(status().isCreated())
+                    .andExpect(jsonPath("$.status").value("success"));
+        } finally {
+            SecurityContextHolder.clearContext();
+        }
     }
 
     @Test
     @DisplayName("GET /api/courses returns all courses for couple with poi list")
     void getCoursesSuccess() throws Exception {
-        Mockito.when(jwtProvider.extractCoupleId("Bearer token")).thenReturn(5678L);
+        Mockito.when(jwtProvider.getCoupleIdFromToken("token-5678")).thenReturn(5678L);
         Mockito.when(courseService.findCoursesByCoupleId(5678L))
                 .thenReturn(List.of(
                         course(1L, 5678L, true),
                         course(2L, 5678L, true)
                 ));
 
-        mockMvc.perform(get("/api/courses")
-                        .header(HttpHeaders.AUTHORIZATION, "Bearer token"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].course_id").value(1L))
-                .andExpect(jsonPath("$[0].poi_list[0].poi.poi_id").value(101L))
-                .andExpect(jsonPath("$[1].course_id").value(2L));
+        TestingAuthenticationToken authentication = jwtAuthentication();
+        SecurityContextHolder.getContext().setAuthentication(authentication);
+        try {
+            mockMvc.perform(get("/api/courses"))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$[0].course_id").value(1L))
+                    .andExpect(jsonPath("$[0].poi_list[0].poi.poi_id").value(101L))
+                    .andExpect(jsonPath("$[1].course_id").value(2L));
+        } finally {
+            SecurityContextHolder.clearContext();
+        }
     }
 
     @Test
     @DisplayName("GET /api/courses returns 404 when no courses for couple")
     void getCoursesNotFound() throws Exception {
-        Mockito.when(jwtProvider.extractCoupleId("Bearer token")).thenReturn(5678L);
+        Mockito.when(jwtProvider.getCoupleIdFromToken("token-5678")).thenReturn(5678L);
         Mockito.when(courseService.findCoursesByCoupleId(5678L))
                 .thenThrow(new EntityNotFoundException("Courses not found for coupleId: 5678"));
 
-        mockMvc.perform(get("/api/courses")
-                        .header(HttpHeaders.AUTHORIZATION, "Bearer token"))
-                .andExpect(status().isNotFound())
-                .andExpect(jsonPath("$.status").value("error"));
+        TestingAuthenticationToken authentication = jwtAuthentication();
+        SecurityContextHolder.getContext().setAuthentication(authentication);
+        try {
+            mockMvc.perform(get("/api/courses"))
+                    .andExpect(status().isNotFound())
+                    .andExpect(jsonPath("$.status").value("error"));
+        } finally {
+            SecurityContextHolder.clearContext();
+        }
     }
 
     @Test
     @DisplayName("Missing Authorization header returns 400")
     void missingAuthorizationHeader() throws Exception {
+        SecurityContextHolder.clearContext();
         mockMvc.perform(post("/api/courses")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(validPayload()))
                 .andExpect(status().isBadRequest());
+    }
+
+    private TestingAuthenticationToken jwtAuthentication() {
+        Jwt jwt = Jwt.withTokenValue("token-5678")
+                .header("alg", "HS256")
+                .claim("coupleId", 5678L)
+                .build();
+        TestingAuthenticationToken authentication = new TestingAuthenticationToken(jwt, null);
+        authentication.setAuthenticated(true);
+        return authentication;
     }
 
     private String validPayload() {
