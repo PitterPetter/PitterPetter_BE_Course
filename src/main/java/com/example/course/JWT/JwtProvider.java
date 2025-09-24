@@ -31,7 +31,7 @@ public class JwtProvider {
     }
 
     public Long extractCoupleId(Jwt jwt) {
-        return getCoupleIdFromToken(jwt.getTokenValue());
+        return getClaimAsLong(jwt, "coupleId");
     }
 
     public Long extractCoupleId(String authorizationHeader) {
@@ -44,23 +44,39 @@ public class JwtProvider {
     }
 
     public Long getCoupleIdFromToken(String token) {
+        return getClaimAsLong(token, "coupleId");
+    }
+
+    public Long getCourseIdFromToken(String token) {
+        return getClaimAsLong(token, "courseId");
+    }
+
+    public Long getCourseIdFromJwt(Jwt jwt) {
+        return getClaimAsLong(jwt, "courseId");
+    }
+
+    private Long getClaimAsLong(String token, String claimName) {
         try {
             Jwt jwt = jwtDecoder.decode(token);
-            Object coupleIdClaim = jwt.getClaims().get("coupleId");
-            if (coupleIdClaim instanceof Number number) {
-                return number.longValue();
-            }
-            if (coupleIdClaim instanceof String stringValue && StringUtils.hasText(stringValue)) {
-                try {
-                    return Long.parseLong(stringValue);
-                } catch (NumberFormatException ex) {
-                    throw new IllegalArgumentException("coupleId claim must be numeric", ex);
-                }
-            }
-            throw new IllegalArgumentException("coupleId claim is missing in JWT");
+            return getClaimAsLong(jwt, claimName);
         } catch (JwtException ex) {
             throw new IllegalArgumentException("Invalid JWT token", ex);
         }
+    }
+
+    private Long getClaimAsLong(Jwt jwt, String claimName) {
+        Object claimValue = jwt.getClaims().get(claimName);
+        if (claimValue instanceof Number number) {
+            return number.longValue();
+        }
+        if (claimValue instanceof String stringValue && StringUtils.hasText(stringValue)) {
+            try {
+                return Long.parseLong(stringValue);
+            } catch (NumberFormatException ex) {
+                throw new IllegalArgumentException(claimName + " claim must be numeric", ex);
+            }
+        }
+        throw new IllegalArgumentException(claimName + " claim is missing in JWT");
     }
 
     private String resolveToken(String authorizationHeader) {

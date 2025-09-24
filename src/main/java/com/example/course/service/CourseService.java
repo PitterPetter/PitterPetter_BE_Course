@@ -63,6 +63,7 @@ public class CourseService {
             poiSets.add(savedPoiSet);
         }
 
+        persistedCourse.getPoiSets().addAll(poiSets);
         return new CourseCreationResult(persistedCourse, poiSets);
     }
 
@@ -85,6 +86,12 @@ public class CourseService {
             });
         });
         return courses;
+    }
+
+    public void deleteCourse(Long coupleId, Long courseId) {
+        Course course = courseRepository.findByIdAndCoupleId(courseId, coupleId)
+                .orElseThrow(() -> new EntityNotFoundException("Course not found for coupleId: " + coupleId + ", courseId: " + courseId));
+        courseRepository.delete(course);
     }
 
     private Poi upsertPoi(PoiItem item) {

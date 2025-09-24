@@ -183,6 +183,28 @@ class CourseServiceTest {
                 .hasMessageContaining("5678");
     }
 
+    @Test
+    @DisplayName("커플 코스를 삭제한다")
+    void deleteCourseSuccess() {
+        Course course = new Course();
+        course.setCoupleId(5678L);
+        when(courseRepository.findByIdAndCoupleId(3L, 5678L)).thenReturn(Optional.of(course));
+
+        courseService.deleteCourse(5678L, 3L);
+
+        verify(courseRepository).delete(course);
+    }
+
+    @Test
+    @DisplayName("삭제 대상 코스가 없으면 예외가 발생한다")
+    void deleteCourseNotFound() {
+        when(courseRepository.findByIdAndCoupleId(3L, 5678L)).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> courseService.deleteCourse(5678L, 3L))
+                .isInstanceOf(EntityNotFoundException.class)
+                .hasMessageContaining("courseId: 3");
+    }
+
     private void setField(Object target, String fieldName, Object value) throws Exception {
         var field = target.getClass().getDeclaredField(fieldName);
         field.setAccessible(true);
