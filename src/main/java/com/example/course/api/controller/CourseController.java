@@ -1,10 +1,11 @@
 package com.example.course.api.controller;
 
 import com.example.course.api.dto.Requset.CreateCourseRequest;
+import com.example.course.api.dto.Requset.UpsertPoiReviewsRequest;
 import com.example.course.api.dto.Response.CourseResponse;
 import com.example.course.api.dto.Response.StatusResponse;
-import com.example.course.jwt.JwtProvider;
 import com.example.course.service.CourseService;
+import com.example.course.service.PoiReviewService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -20,24 +21,29 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
-@RequestMapping(value = "/api/courses", produces = "application/json")
+@RequestMapping(value = "/api", produces = "application/json")
 @Validated
 @Tag(name = "Course", description = "Course management APIs")
+
 public class CourseController {
 
     private final CourseService courseService;
-    private final JwtProvider jwtProvider;
+    private final PoiReviewService poiReviewService;
 
-    public CourseController(CourseService courseService, JwtProvider jwtProvider) {
+    private static final String LOGIN_REQUIRED_MESSAGE = "로그인 후 진행해주세요.";
+
+    public CourseController(CourseService courseService, PoiReviewService poiReviewService) {
         this.courseService = courseService;
-        this.jwtProvider = jwtProvider;
+        this.poiReviewService = poiReviewService;
     }
 
-    @PostMapping(consumes = "application/json")
+    @PostMapping(value = "/courses", consumes = "application/json")
     @ResponseStatus(HttpStatus.CREATED)
     @Operation(
             summary = "Create a new course",
@@ -74,15 +80,12 @@ public class CourseController {
             @AuthenticationPrincipal Jwt jwt,
             @Valid @RequestBody CreateCourseRequest request
     ) {
-        if (jwt == null) {
-            throw new IllegalArgumentException("Authentication is required");
-        }
-        Long coupleId = jwtProvider.extractCoupleId(jwt);
+        long coupleId = requireCoupleId(jwt);
         courseService.createCourse(coupleId, request);
         return StatusResponse.success();
     }
 
-    @GetMapping
+    @GetMapping("/courses")
     @ResponseStatus(HttpStatus.OK)
     @Operation(
             summary = "List courses",
@@ -107,17 +110,14 @@ public class CourseController {
     public List<CourseResponse> getCourses(
             @AuthenticationPrincipal Jwt jwt
     ) {
-        if (jwt == null) {
-            throw new IllegalArgumentException("Authentication is required");
-        }
-        Long coupleId = jwtProvider.extractCoupleId(jwt);
+        long coupleId = requireCoupleId(jwt);
         return courseService.findCoursesByCoupleId(coupleId)
                 .stream()
                 .map(CourseResponse::from)
                 .toList();
     }
 
-    @DeleteMapping("/{courseId}") // course_id를 URL 경로에 추가
+    @DeleteMapping("/courses/{courseId}")
     @ResponseStatus(HttpStatus.OK)
     @Operation(
             summary = "Delete course",
@@ -141,14 +141,82 @@ public class CourseController {
     })
     public StatusResponse deleteCourse(
             @AuthenticationPrincipal Jwt jwt,
-            @PathVariable Long courseId // URL에서 course_id를 받도록 변경
+            @PathVariable Long courseId
     ) {
-        if (jwt == null) {
-            throw new IllegalArgumentException("Authentication is required");
-        }
-        Long coupleId = jwtProvider.extractCoupleId(jwt);
-        // Long courseId = jwtProvider.getCourseIdFromJwt(jwt); // JWT에서 course_id를 읽는 부분 제거
+        long coupleId = requireCoupleId(jwt);
         courseService.deleteCourse(coupleId, courseId);
         return StatusResponse.success();
+    }
+
+    @PostMapping(value = "/courses/reviews", consumes = "application/json")
+    @ResponseStatus(HttpStatus.OK)
+    @Operation(
+            summary = "Bulk upsert POI reviews",
+            description = "Upserts multiple POI reviews at once using the authenticated user's identity.",
+            security = {@SecurityRequirement(name = "bearerAuth")}
+    )
+    @ApiResponses({
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "Reviews upserted",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = StatusResponse.class),
+                            examples = @ExampleObject(value = "{\n  \"status\": \"success\"\n}")
+                    )
+            ),
+            @ApiResponse(responseCode = "400", description = "Invalid request", content = @Content),
+            @ApiResponse(responseCode = "401", description = "Unauthorized", content = @Content)
+    })
+    public StatusResponse upsertReviews(
+            @AuthenticationPrincipal Jwt jwt,
+            @Valid @RequestBody UpsertPoiReviewsRequest request
+    ) {
+        long userId = requireUserId(jwt);
+        requireCoupleId(jwt);
+        List<PoiReviewService.ReviewCommand> commands = request.getData().stream()
+                .map(item -> new PoiReviewService.ReviewCommand(item.getPoiId(), item.getRating()))
+                .toList();
+        poiReviewService.upsertReviews(userId, commands);
+        return StatusResponse.success();
+    }
+
+    private long requireUserId(Jwt jwt) {
+        return extractRequiredId(jwt, List.of("userId", "user_id"));
+    }
+
+    private long requireCoupleId(Jwt jwt) {
+        return extractRequiredId(jwt, List.of("coupleId", "couple_id"));
+    }
+
+    private long extractRequiredId(Jwt jwt, List<String> claimKeys) {
+        if (jwt == null) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, LOGIN_REQUIRED_MESSAGE);
+        }
+        Map<String, Object> claims = jwt.getClaims();
+        for (String key : claimKeys) {
+            Object raw = claims.get(key);
+            Long value = toPositiveLong(raw);
+            if (value != null) {
+                return value;
+            }
+        }
+        throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, LOGIN_REQUIRED_MESSAGE);
+    }
+
+    private Long toPositiveLong(Object value) {
+        if (value instanceof Number number) {
+            long converted = number.longValue();
+            return converted > 0 ? converted : null;
+        }
+        if (value instanceof String stringValue) {
+            try {
+                long parsed = Long.parseLong(stringValue);
+                return parsed > 0 ? parsed : null;
+            } catch (NumberFormatException ignored) {
+                return null;
+            }
+        }
+        return null;
     }
 }
