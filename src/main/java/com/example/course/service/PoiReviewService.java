@@ -28,7 +28,7 @@ public class PoiReviewService {
         PoiReview existing = poiReviewRepository.findByPoi_IdAndUserId(poiId, userId).orElse(null);
         if (existing != null) {
             existing.setRating(rating);
-            return existing;
+            return poiReviewRepository.save(existing);
         }
 
         Poi poi = poiRepository.findById(poiId)

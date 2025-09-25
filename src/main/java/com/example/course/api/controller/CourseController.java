@@ -1,7 +1,6 @@
 package com.example.course.api.controller;
 
 import com.example.course.api.dto.Requset.CreateCourseRequest;
-import com.example.course.api.dto.Requset.CreateOrUpdateReviewRequest;
 import com.example.course.api.dto.Requset.UpsertPoiReviewsRequest;
 import com.example.course.api.dto.Response.CourseResponse;
 import com.example.course.api.dto.Response.StatusResponse;
@@ -17,7 +16,6 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.Positive;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
@@ -32,6 +30,7 @@ import java.util.Map;
 @RequestMapping(value = "/api", produces = "application/json")
 @Validated
 @Tag(name = "Course", description = "Course management APIs")
+
 public class CourseController {
 
     private final CourseService courseService;
@@ -149,38 +148,7 @@ public class CourseController {
         return StatusResponse.success();
     }
 
-    @PostMapping(value = "/pois/{poiId}/reviews", consumes = "application/json")
-    @ResponseStatus(HttpStatus.OK)
-    @Operation(
-            summary = "Create or update a review for a POI",
-            description = "Upserts a review for the given POI using the authenticated user's identity.",
-            security = {@SecurityRequirement(name = "bearerAuth")}
-    )
-    @ApiResponses({
-            @ApiResponse(
-                    responseCode = "200",
-                    description = "Review upserted",
-                    content = @Content(
-                            mediaType = "application/json",
-                            schema = @Schema(implementation = StatusResponse.class),
-                            examples = @ExampleObject(value = "{\n  \"status\": \"success\"\n}")
-                    )
-            ),
-            @ApiResponse(responseCode = "400", description = "Invalid request", content = @Content),
-            @ApiResponse(responseCode = "401", description = "Unauthorized", content = @Content)
-    })
-    public StatusResponse upsertReview(
-            @AuthenticationPrincipal Jwt jwt,
-            @PathVariable("poiId") @Positive Long poiId,
-            @Valid @RequestBody CreateOrUpdateReviewRequest request
-    ) {
-        long userId = requireUserId(jwt);
-        requireCoupleId(jwt);
-        poiReviewService.upsertReview(userId, poiId, request.getRating());
-        return StatusResponse.success();
-    }
-
-    @PostMapping(value = "/pois/reviews", consumes = "application/json")
+    @PostMapping(value = "/courses/reviews", consumes = "application/json")
     @ResponseStatus(HttpStatus.OK)
     @Operation(
             summary = "Bulk upsert POI reviews",
