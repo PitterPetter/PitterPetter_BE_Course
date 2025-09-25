@@ -25,12 +25,6 @@ public class PoiReviewService {
 
     public PoiReview upsertReview(long userId, long poiId, int rating) {
         validateRating(rating);
-        PoiReview existing = poiReviewRepository.findByPoi_IdAndUserId(poiId, userId).orElse(null);
-        if (existing != null) {
-            existing.setRating(rating);
-            return poiReviewRepository.save(existing);
-        }
-
         Poi poi = poiRepository.findById(poiId)
                 .orElseThrow(() -> new EntityNotFoundException("Poi not found for id: " + poiId));
 

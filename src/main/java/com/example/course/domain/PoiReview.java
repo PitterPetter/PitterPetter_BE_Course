@@ -8,8 +8,7 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 import java.time.Instant;
 
 @Entity
-@Table(name = "poi_review",
-        uniqueConstraints = @UniqueConstraint(columnNames = {"poi_id", "user_id"}))
+@Table(name = "poi_review")
 @EntityListeners(AuditingEntityListener.class)
 public class PoiReview {
 
