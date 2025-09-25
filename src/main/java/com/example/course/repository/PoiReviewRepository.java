@@ -9,7 +9,7 @@ import java.util.Optional;
 
 public interface PoiReviewRepository extends JpaRepository<PoiReview, Long> {
 
-    Optional<PoiReview> findByPoiIdAndUserId(Long poiId, Long userId);
+    Optional<PoiReview> findByPoi_IdAndUserId(Long poiId, Long userId);
 
     @Query("select coalesce(avg(r.rating), 0) as avg, count(r) as count " +
             "from PoiReview r where r.poi.id = :poiId")
