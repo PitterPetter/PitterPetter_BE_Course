@@ -70,6 +70,6 @@ jobs:
             echo "Changes detected:"
             git diff values.yaml
             git add values.yaml
-            git commit -m "ci: update auth-service image to ${{ steps.vars.outputs.sha_short }}"
+            git commit -m "ci: update course-service image to ${{ steps.vars.outputs.sha_short }}"
             git push origin main
           fi
