@@ -39,4 +39,4 @@ management:
     defaults:
       enabled: true
   security:
-    enabled: false
+    enabled: false  # Health endpoint 인증 비활성화
