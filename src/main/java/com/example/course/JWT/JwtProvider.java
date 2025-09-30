@@ -1,4 +1,4 @@
-package com.example.course.JWT;
+package com.example.course.jwt;
 
 import lombok.Getter;
 import org.springframework.beans.factory.annotation.Value;
@@ -34,9 +34,12 @@ public class JwtProvider {
             throw new IllegalArgumentException("JWT secret must not be blank");
         }
         SecretKey key = new SecretKeySpec(secret.getBytes(StandardCharsets.UTF_8), "HmacSHA256");
+        // 필터가 헤더에서 토큰 문자열을 꺼내 JwtProvider의 NimbusJwtDecoder로 검증·디코딩하고 검증에 성공하면 Jwt 객체를 만들고 이를 인증 객체
+        //  (JwtAuthenticationToken)에 담아 SecurityContext에 넣습니다.
         this.jwtDecoder = NimbusJwtDecoder.withSecretKey(key)
                 .macAlgorithm(MacAlgorithm.HS256)
                 .build();
+        // 컨트롤러 메서드에 @AuthenticationPrincipal Jwt jwt라는 파라미터가 있으면, 방금 SecurityContext에 저장된 Jwt 객체가 그대로 주입됨
     }
 
     public Long extractCoupleId(Jwt jwt) {
