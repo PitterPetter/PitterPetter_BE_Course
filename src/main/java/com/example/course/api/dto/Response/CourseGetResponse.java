@@ -3,13 +3,10 @@ package com.example.course.api.dto.Response;
 import com.example.course.domain.Course;
 import com.example.course.domain.Poi;
 import com.example.course.domain.PoiSet;
-import com.fasterxml.jackson.databind.PropertyNamingStrategies;
-import com.fasterxml.jackson.databind.annotation.JsonNaming;
 
 import java.util.List;
 import java.util.stream.Collectors;
 
-@JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
 public class CourseGetResponse {
 
     private final Long courseId;
@@ -71,7 +68,6 @@ public class CourseGetResponse {
         return poiSets;
     }
 
-    @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
     public static class PoiSetResponse {
 
         private final Long poiSetId;

@@ -1,13 +1,10 @@
 package com.example.course.api.dto.Response;
 
 import com.example.course.domain.PoiReview;
-import com.fasterxml.jackson.databind.PropertyNamingStrategies;
-import com.fasterxml.jackson.databind.annotation.JsonNaming;
 import io.swagger.v3.oas.annotations.media.Schema;
 
 import java.time.Instant;
 
-@JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
 @Schema(description = "POI review representation")
 public class ReviewResponse {
 
