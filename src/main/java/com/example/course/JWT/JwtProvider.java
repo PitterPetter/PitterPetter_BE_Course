@@ -1,5 +1,6 @@
-package com.example.course.jwt;
+package com.example.course.JWT;
 
+import lombok.Getter;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.oauth2.jose.jws.MacAlgorithm;
 import org.springframework.security.oauth2.jwt.Jwt;
@@ -13,12 +14,20 @@ import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
 import java.nio.charset.StandardCharsets;
 
+@Getter
 @Component
 public class JwtProvider {
 
     private static final String BEARER_PREFIX = "Bearer ";
 
     private final JwtDecoder jwtDecoder;
+
+    private String resolveToken(String authorizationHeader) {
+        if (!StringUtils.hasText(authorizationHeader) || !authorizationHeader.startsWith(BEARER_PREFIX)) {
+            throw new IllegalArgumentException("Authorization header must start with 'Bearer '");
+        }
+        return authorizationHeader.substring(BEARER_PREFIX.length());
+    }
 
     public JwtProvider(@Value("${jwt.secret}") String secret) {
         if (!StringUtils.hasText(secret)) {
@@ -39,20 +48,8 @@ public class JwtProvider {
         return getCoupleIdFromToken(token);
     }
 
-    public JwtDecoder getJwtDecoder() {
-        return jwtDecoder;
-    }
-
     public Long getCoupleIdFromToken(String token) {
         return getClaimAsLong(token, "coupleId");
-    }
-
-    public Long getCourseIdFromToken(String token) {
-        return getClaimAsLong(token, "courseId");
-    }
-
-    public Long getCourseIdFromJwt(Jwt jwt) {
-        return getClaimAsLong(jwt, "courseId");
     }
 
     private Long getClaimAsLong(String token, String claimName) {
@@ -79,10 +76,5 @@ public class JwtProvider {
         throw new IllegalArgumentException(claimName + " claim is missing in JWT");
     }
 
-    private String resolveToken(String authorizationHeader) {
-        if (!StringUtils.hasText(authorizationHeader) || !authorizationHeader.startsWith(BEARER_PREFIX)) {
-            throw new IllegalArgumentException("Authorization header must start with 'Bearer '");
-        }
-        return authorizationHeader.substring(BEARER_PREFIX.length());
-    }
+
 }
