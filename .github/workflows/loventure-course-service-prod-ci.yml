@@ -34,8 +34,6 @@ jobs:
           tags: |
             pitterpetter/course-service:${{ steps.vars.outputs.sha_short }}
             pitterpetter/course-service:latest
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
 
       # ArgoCD가 참조하는 Repository로 checkout
       - name: Update Manifest Repo
