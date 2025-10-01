@@ -2,8 +2,6 @@ package com.example.course.api.dto.Requset;
 
 import com.example.course.domain.Category;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.databind.PropertyNamingStrategies;
-import com.fasterxml.jackson.databind.annotation.JsonNaming;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.*;
@@ -12,7 +10,6 @@ import java.util.List;
 import java.util.Map;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
-@JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
 @Schema(description = "Request payload for creating a new course")
 public class CreateCourseRequest {
 
@@ -45,7 +42,6 @@ public class CreateCourseRequest {
     }
 
     @JsonIgnoreProperties(ignoreUnknown = true)
-    @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
     public static class PoiItem {
 
         @Schema(description = "Sequence order of the POI in the course", example = "1")
