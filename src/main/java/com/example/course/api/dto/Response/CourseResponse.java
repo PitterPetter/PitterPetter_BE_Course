@@ -3,8 +3,6 @@ package com.example.course.api.dto.Response;
 import com.example.course.domain.Course;
 import com.example.course.domain.Poi;
 import com.example.course.domain.PoiSet;
-import com.fasterxml.jackson.databind.PropertyNamingStrategies;
-import com.fasterxml.jackson.databind.annotation.JsonNaming;
 import io.swagger.v3.oas.annotations.media.Schema;
 
 import java.util.Collections;
@@ -12,7 +10,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-@JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
 @Schema(description = "Course representation")
 public class CourseResponse {
 
@@ -88,7 +85,6 @@ public class CourseResponse {
         return poiList;
     }
 
-    @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
     public static class PoiSetResponse {
 
         @Schema(description = "Identifier of the course-to-poi association", example = "11")
@@ -137,7 +133,6 @@ public class CourseResponse {
         }
     }
 
-    @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
     public static class PoiResponse {
 
         @Schema(description = "Identifier of the POI", example = "101")

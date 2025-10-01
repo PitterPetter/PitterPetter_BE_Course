@@ -1,10 +1,7 @@
 package com.example.course.api.dto.Response;
 
-import com.fasterxml.jackson.databind.PropertyNamingStrategies;
-import com.fasterxml.jackson.databind.annotation.JsonNaming;
 import io.swagger.v3.oas.annotations.media.Schema;
 
-@JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
 @Schema(description = "Aggregated review summary for a POI")
 public class ReviewSummaryResponse {
 

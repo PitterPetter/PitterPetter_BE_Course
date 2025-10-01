@@ -72,7 +72,7 @@ public class CourseController {
                     schema = @Schema(implementation = CreateCourseRequest.class),
                     examples = @ExampleObject(
                             name = "CreateCourse",
-                            value = "{\n  \"title\": \"한강 저녁 데이터 \",\n  \"explain\": \"오늘 무드에 맞는 코스입니다~ \",\n  \"data\": [\n    {\n      \"seq\": 1,\n      \"name\": \"Blue Bottle Yeonnam\",\n      \"category\": \"CAFE\",\n      \"lat\": 37.56231,\n      \"lng\": 126.92501,\n      \"indoor\": true,\n      \"price_level\": 2,\n      \"open_hours\": {\n        \"mon\": \"09:00-18:00\"\n      },\n      \"alcohol\": 0,\n      \"mood_tag\": 1001,\n      \"food_tag\": [\"COFFEE\", \"DESSERT\"],\n      \"rating_avg\": 4.3\n    }\n  ]\n}"
+                            value = "{\n  \"title\": \"한강 저녁 데이터 \",\n  \"explain\": \"오늘 무드에 맞는 코스입니다~ \",\n  \"data\": [\n    {\n      \"seq\": 1,\n      \"name\": \"Blue Bottle Yeonnam\",\n      \"category\": \"CAFE\",\n      \"lat\": 37.56231,\n      \"lng\": 126.92501,\n      \"indoor\": true,\n      \"priceLevel\": 2,\n      \"openHours\": {\n        \"mon\": \"09:00-18:00\"\n      },\n      \"alcohol\": 0,\n      \"moodTag\": 1001,\n      \"foodTag\": [\"COFFEE\", \"DESSERT\"],\n      \"ratingAvg\": 4.3\n    }\n  ]\n}"
                     )
             )
     )
@@ -101,7 +101,7 @@ public class CourseController {
                             array = @ArraySchema(schema = @Schema(implementation = CourseResponse.class)),
                             examples = @ExampleObject(
                                     name = "Courses",
-                                    value = "[\n  {\n    \"course_id\": 1,\n    \"couple_id\": 5678,\n    \"title\": \"주말 데이트 코스\",\n    \"info\": \"서울숲 산책과 카페 방문 코스\",\n    \"score\": 10,\n    \"poi_list\": [\n      {\n        \"poi_set_id\": 11,\n        \"order\": 1,\n        \"rating\": null,\n        \"poi\": {\n          \"poi_id\": 101,\n          \"name\": \"Blue Bottle Yeonnam\",\n          \"category\": \"CAFE\",\n          \"lat\": 37.56231,\n          \"lng\": 126.92501,\n          \"indoor\": true,\n          \"price_level\": 2,\n          \"open_hours\": {\n            \"mon\": \"09:00-18:00\"\n          },\n          \"alcohol\": 0,\n          \"mood_tag\": 1001,\n          \"food_tag\": [\"COFFEE\", \"DESSERT\"],\n          \"rating_avg\": 4.3,\n          \"link\": \"https://example.com\"\n        }\n      }\n    ]\n  }\n]"
+                                    value = "[\n  {\n    \"courseId\": 1,\n    \"coupleId\": 5678,\n    \"title\": \"주말 데이트 코스\",\n    \"info\": \"서울숲 산책과 카페 방문 코스\",\n    \"score\": 10,\n    \"poiList\": [\n      {\n        \"poiSetId\": 11,\n        \"order\": 1,\n        \"rating\": null,\n        \"poi\": {\n          \"poiId\": 101,\n          \"name\": \"Blue Bottle Yeonnam\",\n          \"category\": \"CAFE\",\n          \"lat\": 37.56231,\n          \"lng\": 126.92501,\n          \"indoor\": true,\n          \"priceLevel\": 2,\n          \"openHours\": {\n            \"mon\": \"09:00-18:00\"\n          },\n          \"alcohol\": 0,\n          \"moodTag\": 1001,\n          \"foodTag\": [\"COFFEE\", \"DESSERT\"],\n          \"ratingAvg\": 4.3,\n          \"link\": \"https://example.com\"\n        }\n      }\n    ]\n  }\n]"
                             )
                     )
             ),
@@ -182,11 +182,11 @@ public class CourseController {
     }
 
     private long requireUserId(Jwt jwt) {
-        return extractRequiredId(jwt, List.of("userId", "user_id"));
+        return extractRequiredId(jwt, List.of("userId"));
     }
 
     private long requireCoupleId(Jwt jwt) {
-        return extractRequiredId(jwt, List.of("coupleId", "couple_id"));
+        return extractRequiredId(jwt, List.of("coupleId"));
     }
 
     private long extractRequiredId(Jwt jwt, List<String> claimKeys) {
@@ -219,4 +219,5 @@ public class CourseController {
         }
         return null;
     }
+
 }
