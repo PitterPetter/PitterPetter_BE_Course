@@ -1,42 +1,13 @@
 spring:
-  datasource:
-    url: jdbc:postgresql://${DB_HOST}:${DB_PORT}/${DB_NAME}
-    username: ${DB_USERNAME}
-    password: ${DB_PASSWORD}
-    driver-class-name: org.postgresql.Driver
-
-  jpa:
-    hibernate:
-      ddl-auto: update
-    show-sql: true
-    properties:
-      hibernate:
-        dialect: org.hibernate.dialect.PostgreSQLDialect
-
-springdoc:
-  swagger-ui:
-    path: /docs
-    persist-authorization: true
-
-jwt:
-  secret: ${JWT_SECRET}
-
-management:
-  endpoints:
-    web:
-      exposure:
-        include: health,info,metrics,prometheus
-  endpoint:
-    health:
-      show-details: always
-      show-components: always
-      enabled: true
-  health:
-    db:
-      enabled: true
-    diskspace:
-      enabled: true
-    defaults:
-      enabled: true
-  security:
-    enabled: false  # Health endpoint 인증 비활성화
+  config:
+    import: "optional:configserver:"
+  cloud:
+    config:
+      uri: http://config-server.config-server.svc.cluster.local:80
+      name: course-service
+      label: main
+      fail-fast: true
+  application:
+    name: course-service
+  profiles:
+    active: prod
