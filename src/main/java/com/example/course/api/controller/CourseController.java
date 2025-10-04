@@ -1,11 +1,10 @@
 package com.example.course.api.controller;
 
 import com.example.course.api.dto.Requset.CreateCourseRequest;
-import com.example.course.api.dto.Requset.UpsertPoiReviewsRequest;
+import com.example.course.api.dto.Requset.UpdateCourseReviewRequest;
 import com.example.course.api.dto.Response.CourseResponse;
 import com.example.course.api.dto.Response.StatusResponse;
 import com.example.course.service.CourseService;
-import com.example.course.service.PoiReviewService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -34,13 +33,10 @@ import java.util.Map;
 public class CourseController {
 
     private final CourseService courseService;
-    private final PoiReviewService poiReviewService;
-
     private static final String LOGIN_REQUIRED_MESSAGE = "로그인 후 진행해주세요.";
 
-    public CourseController(CourseService courseService, PoiReviewService poiReviewService) {
+    public CourseController(CourseService courseService) {
         this.courseService = courseService;
-        this.poiReviewService = poiReviewService;
     }
 
     @PostMapping(value = "/courses", consumes = "application/json")
@@ -121,7 +117,7 @@ public class CourseController {
     @ResponseStatus(HttpStatus.OK)
     @Operation(
             summary = "Delete course",
-            description = "Deletes a course belonging to the authenticated couple. The course id is read from the URL path, and the couple id from the JWT claims.", // 설명 업데이트
+            description = "Deletes a course belonging to the authenticated couple. The course id is read from the URL path, and the couple id from the JWT claims.",
             security = {@SecurityRequirement(name = "bearerAuth")}
     )
     @ApiResponses({
@@ -148,17 +144,17 @@ public class CourseController {
         return StatusResponse.success();
     }
 
-    @PostMapping(value = "/courses/reviews", consumes = "application/json")
+    @PatchMapping(value = "/courses/{courseId}/review", consumes = "application/json")
     @ResponseStatus(HttpStatus.OK)
     @Operation(
-            summary = "Bulk upsert POI reviews",
-            description = "Upserts multiple POI reviews at once using the authenticated user's identity.",
+            summary = "Update course review score",
+            description = "Updates the review score for a course owned by the authenticated couple.",
             security = {@SecurityRequirement(name = "bearerAuth")}
     )
     @ApiResponses({
             @ApiResponse(
                     responseCode = "200",
-                    description = "Reviews upserted",
+                    description = "Review updated",
                     content = @Content(
                             mediaType = "application/json",
                             schema = @Schema(implementation = StatusResponse.class),
@@ -166,18 +162,17 @@ public class CourseController {
                     )
             ),
             @ApiResponse(responseCode = "400", description = "Invalid request", content = @Content),
-            @ApiResponse(responseCode = "401", description = "Unauthorized", content = @Content)
+            @ApiResponse(responseCode = "401", description = "Unauthorized", content = @Content),
+            @ApiResponse(responseCode = "404", description = "Course not found", content = @Content)
     })
-    public StatusResponse upsertReviews(
+    public StatusResponse updateCourseReview(
             @AuthenticationPrincipal Jwt jwt,
-            @Valid @RequestBody UpsertPoiReviewsRequest request
+            @PathVariable Long courseId,
+            @Valid @RequestBody UpdateCourseReviewRequest request
     ) {
         long userId = requireUserId(jwt);
-        requireCoupleId(jwt);
-        List<PoiReviewService.ReviewCommand> commands = request.getData().stream()
-                .map(item -> new PoiReviewService.ReviewCommand(item.getPoiId(), item.getRating()))
-                .toList();
-        poiReviewService.upsertReviews(userId, commands);
+        long coupleId = requireCoupleId(jwt);
+        courseService.updateReviewScore(userId, coupleId, courseId, request.getReviewScore());
         return StatusResponse.success();
     }
 
