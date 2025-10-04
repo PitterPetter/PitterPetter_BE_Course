@@ -1,6 +1,5 @@
 package com.example.course.api.dto.Response;
 
-import com.example.course.domain.PoiReview;
 import io.swagger.v3.oas.annotations.media.Schema;
 
 import java.time.Instant;
@@ -38,17 +37,6 @@ public class ReviewResponse {
         this.rating = rating;
         this.createdAt = createdAt;
         this.updatedAt = updatedAt;
-    }
-
-    public static ReviewResponse from(PoiReview review) {
-        return new ReviewResponse(
-                review.getId(),
-                review.getPoi() != null ? review.getPoi().getId() : null,
-                review.getUserId(),
-                review.getRating(),
-                review.getCreatedAt(),
-                review.getUpdatedAt()
-        );
     }
 
     public Long getReviewId() {

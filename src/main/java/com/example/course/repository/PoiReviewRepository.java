@@ -1,6 +1,5 @@
 package com.example.course.repository;
 
-import com.example.course.domain.PoiReview;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;

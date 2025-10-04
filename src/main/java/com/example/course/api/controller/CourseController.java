@@ -5,7 +5,6 @@ import com.example.course.api.dto.Requset.UpsertPoiReviewsRequest;
 import com.example.course.api.dto.Response.CourseResponse;
 import com.example.course.api.dto.Response.StatusResponse;
 import com.example.course.service.CourseService;
-import com.example.course.service.PoiReviewService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -34,13 +33,10 @@ import java.util.Map;
 public class CourseController {
 
     private final CourseService courseService;
-    private final PoiReviewService poiReviewService;
-
     private static final String LOGIN_REQUIRED_MESSAGE = "로그인 후 진행해주세요.";
 
-    public CourseController(CourseService courseService, PoiReviewService poiReviewService) {
+    public CourseController(CourseService courseService) {
         this.courseService = courseService;
-        this.poiReviewService = poiReviewService;
     }
 
     @PostMapping(value = "/courses", consumes = "application/json")
@@ -174,10 +170,6 @@ public class CourseController {
     ) {
         long userId = requireUserId(jwt);
         requireCoupleId(jwt);
-        List<PoiReviewService.ReviewCommand> commands = request.getData().stream()
-                .map(item -> new PoiReviewService.ReviewCommand(item.getPoiId(), item.getRating()))
-                .toList();
-        poiReviewService.upsertReviews(userId, commands);
         return StatusResponse.success();
     }
 
