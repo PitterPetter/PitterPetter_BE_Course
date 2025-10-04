@@ -94,6 +94,12 @@ public class CourseService {
         courseRepository.delete(course);
     }
 
+    public void updateReviewScore(long userId, long coupleId, long courseId, int reviewScore) {
+        Course course = courseRepository.findByIdAndCoupleId(courseId, coupleId)
+                .orElseThrow(() -> new EntityNotFoundException("Course not found for coupleId: " + coupleId + ", courseId: " + courseId));
+        course.setScore((long) reviewScore);
+    }
+
     private Poi upsertPoi(PoiItem item) {
         Optional<Poi> existingOptional = poiRepository.findByNameAndLatAndLng(item.getName(), item.getLat(), item.getLng());
         if (existingOptional.isPresent()) {
