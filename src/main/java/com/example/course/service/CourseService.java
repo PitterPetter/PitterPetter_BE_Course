@@ -57,8 +57,6 @@ public class CourseService {
             poiSet.setCourse(persistedCourse);
             poiSet.setPoi(poi);
             poiSet.setOrderIndex(order);
-            poiSet.setRating(null);
-
             PoiSet savedPoiSet = poiSetRepository.save(poiSet);
             poiSets.add(savedPoiSet);
         }

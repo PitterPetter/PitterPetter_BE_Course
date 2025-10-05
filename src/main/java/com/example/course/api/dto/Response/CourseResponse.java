@@ -93,16 +93,12 @@ public class CourseResponse {
         @Schema(description = "Order of the POI within the course", example = "1")
         private final Integer order;
 
-        @Schema(description = "Rating given to this POI within the course", example = "5")
-        private final Integer rating;
-
         @Schema(description = "Detailed POI information")
         private final PoiResponse poi;
 
-        private PoiSetResponse(Long poiSetId, Integer order, Integer rating, PoiResponse poi) {
+        private PoiSetResponse(Long poiSetId, Integer order, PoiResponse poi) {
             this.poiSetId = poiSetId;
             this.order = order;
-            this.rating = rating;
             this.poi = poi;
         }
 
@@ -111,7 +107,6 @@ public class CourseResponse {
             return new PoiSetResponse(
                     poiSet.getId(),
                     poiSet.getOrderIndex(),
-                    poiSet.getRating(),
                     poi != null ? PoiResponse.from(poi) : null
             );
         }
@@ -122,10 +117,6 @@ public class CourseResponse {
 
         public Integer getOrder() {
             return order;
-        }
-
-        public Integer getRating() {
-            return rating;
         }
 
         public PoiResponse getPoi() {
