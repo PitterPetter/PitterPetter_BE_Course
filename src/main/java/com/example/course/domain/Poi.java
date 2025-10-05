@@ -47,8 +47,8 @@ public class Poi {
 
     private Integer alcohol;
 
-    @Column(name = "mood_tag", nullable = false)
-    private Long moodTag;
+    @Column(name = "mood_tag", nullable = false, length = 50)
+    private String moodTag;
 
     @ElementCollection
     @CollectionTable(name = "poi_food_tags", joinColumns = @JoinColumn(name = "poi_id"))
@@ -138,12 +138,12 @@ public class Poi {
         this.alcohol = alcohol;
     }
 
-    public Long getMoodTag() {
+    public String getMoodTag() {
         return moodTag;
     }
 
-    public void setMoodTag(Long moodTag) {
-        this.moodTag = moodTag;
+    public void setMoodTag(String moodTag) {
+        this.moodTag = moodTag != null ? moodTag.trim() : null;
     }
 
     public List<String> getFoodTag() {

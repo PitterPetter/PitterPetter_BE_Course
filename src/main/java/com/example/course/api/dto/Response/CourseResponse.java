@@ -23,7 +23,7 @@ public class CourseResponse {
     private final String title;
 
     @Schema(description = "Course description", example = "서울숲 산책과 카페 방문 코스")
-    private final String info;
+    private final String description;
 
     @Schema(description = "Course score", example = "10")
     private final Long score;
@@ -34,13 +34,13 @@ public class CourseResponse {
     private CourseResponse(Long courseId,
                            Long coupleId,
                            String title,
-                           String info,
+                           String description,
                            Long score,
                            List<PoiSetResponse> poiList) {
         this.courseId = courseId;
         this.coupleId = coupleId;
         this.title = title;
-        this.info = info;
+        this.description = description;
         this.score = score;
         this.poiList = poiList;
     }
@@ -55,7 +55,7 @@ public class CourseResponse {
                 course.getId(),
                 course.getCoupleId(),
                 course.getTitle(),
-                course.getInfo(),
+                course.getDescription(),
                 course.getScore(),
                 poiList
         );
@@ -73,8 +73,8 @@ public class CourseResponse {
         return title;
     }
 
-    public String getInfo() {
-        return info;
+    public String getDescription() {
+        return description;
     }
 
     public Long getScore() {
@@ -162,10 +162,10 @@ public class CourseResponse {
         @Schema(description = "Alcohol availability", example = "1")
         private final Integer alcohol;
 
-        @Schema(description = "Mood tag identifier", example = "1001")
-        private final Long moodTag;
+        @Schema(description = "Mood tag identifier in camelCase", example = "warmVibes")
+        private final String moodTag;
 
-        @Schema(description = "Food tags", example = "[\"COFFEE\", \"DESSERT\"]")
+        @Schema(description = "Food tags", example = "[\"coffee\", \"dessert\"]")
         private final List<String> foodTag;
 
         @Schema(description = "Average rating", example = "4.3")
@@ -183,7 +183,7 @@ public class CourseResponse {
                             Integer priceLevel,
                             Map<String, String> openHours,
                             Integer alcohol,
-                            Long moodTag,
+                            String moodTag,
                             List<String> foodTag,
                             Double ratingAvg,
                             String link) {
@@ -256,7 +256,7 @@ public class CourseResponse {
             return alcohol;
         }
 
-        public Long getMoodTag() {
+        public String getMoodTag() {
             return moodTag;
         }
 
