@@ -159,11 +159,11 @@ public class CourseResponse {
         @Schema(description = "Food tags", example = "[\"coffee\", \"dessert\"]")
         private final List<String> foodTag;
 
-        @Schema(description = "Average rating", example = "4.3")
-        private final Double ratingAvg;
-
         @Schema(description = "External link", example = "https://example.com")
         private final String link;
+
+        @Schema(description = "Average rating", example = "4.3")
+        private final Double ratingAvg;
 
         private PoiResponse(Long poiId,
                             String name,
@@ -176,8 +176,8 @@ public class CourseResponse {
                             Integer alcohol,
                             String moodTag,
                             List<String> foodTag,
-                            Double ratingAvg,
-                            String link) {
+                            String link,
+                            Double ratingAvg) {
             this.poiId = poiId;
             this.name = name;
             this.category = category;
@@ -189,8 +189,8 @@ public class CourseResponse {
             this.alcohol = alcohol;
             this.moodTag = moodTag;
             this.foodTag = foodTag;
-            this.ratingAvg = ratingAvg;
             this.link = link;
+            this.ratingAvg = ratingAvg;
         }
 
         private static PoiResponse from(Poi poi) {
@@ -206,8 +206,8 @@ public class CourseResponse {
                     poi.getAlcohol(),
                     poi.getMoodTag(),
                     poi.getFoodTag() != null ? List.copyOf(poi.getFoodTag()) : List.of(),
-                    poi.getRatingAvg(),
-                    poi.getLink()
+                    poi.getLink(),
+                    poi.getRatingAvg()
             );
         }
 
@@ -255,12 +255,12 @@ public class CourseResponse {
             return foodTag;
         }
 
-        public Double getRatingAvg() {
-            return ratingAvg;
-        }
-
         public String getLink() {
             return link;
+        }
+
+        public Double getRatingAvg() {
+            return ratingAvg;
         }
     }
 }
