@@ -10,20 +10,17 @@ import java.util.stream.Collectors;
 public class CourseGetResponse {
 
     private final Long courseId;
-    private final Long coupleId;
     private final String title;
     private final String description;
     private final Long score;
     private final List<PoiSetResponse> poiSets;
 
     private CourseGetResponse(Long courseId,
-                              Long coupleId,
                               String title,
                               String description,
                               Long score,
                               List<PoiSetResponse> poiSets) {
         this.courseId = courseId;
-        this.coupleId = coupleId;
         this.title = title;
         this.description = description;
         this.score = score;
@@ -36,7 +33,6 @@ public class CourseGetResponse {
                 .collect(Collectors.toList());
         return new CourseGetResponse(
                 course.getId(),
-                course.getCoupleId(),
                 course.getTitle(),
                 course.getDescription(),
                 course.getScore(),
@@ -46,10 +42,6 @@ public class CourseGetResponse {
 
     public Long getCourseId() {
         return courseId;
-    }
-
-    public Long getCoupleId() {
-        return coupleId;
     }
 
     public String getTitle() {

@@ -16,9 +16,6 @@ public class CourseResponse {
     @Schema(description = "Identifier of the course", example = "1")
     private final Long courseId;
 
-    @Schema(description = "Identifier of the couple", example = "5678")
-    private final Long coupleId;
-
     @Schema(description = "Course title", example = "주말 데이트 코스")
     private final String title;
 
@@ -32,13 +29,11 @@ public class CourseResponse {
     private final List<PoiSetResponse> poiList;
 
     private CourseResponse(Long courseId,
-                           Long coupleId,
                            String title,
                            String description,
                            Long score,
                            List<PoiSetResponse> poiList) {
         this.courseId = courseId;
-        this.coupleId = coupleId;
         this.title = title;
         this.description = description;
         this.score = score;
@@ -53,7 +48,6 @@ public class CourseResponse {
                 .collect(Collectors.toList());
         return new CourseResponse(
                 course.getId(),
-                course.getCoupleId(),
                 course.getTitle(),
                 course.getDescription(),
                 course.getScore(),
@@ -63,10 +57,6 @@ public class CourseResponse {
 
     public Long getCourseId() {
         return courseId;
-    }
-
-    public Long getCoupleId() {
-        return coupleId;
     }
 
     public String getTitle() {
