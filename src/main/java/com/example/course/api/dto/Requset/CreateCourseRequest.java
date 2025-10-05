@@ -85,13 +85,14 @@ public class CreateCourseRequest {
         @Schema(description = "Alcohol availability", example = "0")
         private Integer alcohol;
 
-        @NotNull
-        @Positive
-        @Schema(description = "Mood tag identifier", example = "1001")
-        private Long moodTag;
+        @NotBlank
+        @Size(max = 50)
+        @Pattern(regexp = "[a-z][a-zA-Z0-9]*", message = "must be camelCase alphanumeric")
+        @Schema(description = "Mood tag identifier in camelCase", example = "warmVibes")
+        private String moodTag;
 
         @Size(max = 20)
-        @Schema(description = "Food tags", example = "[\"COFFEE\", \"DESSERT\"]")
+        @Schema(description = "Food tags", example = "[\"coffee\", \"dessert\"]")
         private List<@Size(min = 1, max = 30) String> foodTag;
 
         @DecimalMin(value = "0.0")
@@ -139,7 +140,7 @@ public class CreateCourseRequest {
             return alcohol;
         }
 
-        public Long getMoodTag() {
+        public String getMoodTag() {
             return moodTag;
         }
 
