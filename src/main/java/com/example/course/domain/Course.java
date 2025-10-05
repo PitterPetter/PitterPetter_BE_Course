@@ -24,8 +24,8 @@ public class Course {
     @Column(nullable = false, length = 200)
     private String title;
 
-    @Column(name = "info", nullable = false, length = 1000)
-    private String info;
+    @Column(name = "description", nullable = false, length = 1000)
+    private String description;
 
     @Column(nullable = false)
     private Long score = 0L;
@@ -61,12 +61,12 @@ public class Course {
         this.title = title;
     }
 
-    public String getInfo() {
-        return info;
+    public String getDescription() {
+        return description;
     }
 
-    public void setInfo(String info) {
-        this.info = info;
+    public void setDescription(String description) {
+        this.description = description;
     }
 
     public Long getScore() {

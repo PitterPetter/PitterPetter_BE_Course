@@ -26,8 +26,6 @@ public class PoiSet {
     @Column(name = "\"order\"", nullable = false)
     private Integer orderIndex;
 
-    private Integer rating;
-
     @LastModifiedDate
     @Column(name = "updated_at")
     private Instant updatedAt;
@@ -58,14 +56,6 @@ public class PoiSet {
 
     public void setOrderIndex(Integer orderIndex) {
         this.orderIndex = orderIndex;
-    }
-
-    public Integer getRating() {
-        return rating;
-    }
-
-    public void setRating(Integer rating) {
-        this.rating = rating;
     }
 
     public Instant getUpdatedAt() {
