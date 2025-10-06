@@ -16,14 +16,11 @@ public class CourseResponse {
     @Schema(description = "Identifier of the course", example = "1")
     private final Long courseId;
 
-    @Schema(description = "Identifier of the couple", example = "5678")
-    private final Long coupleId;
-
     @Schema(description = "Course title", example = "주말 데이트 코스")
     private final String title;
 
     @Schema(description = "Course description", example = "서울숲 산책과 카페 방문 코스")
-    private final String info;
+    private final String description;
 
     @Schema(description = "Course score", example = "10")
     private final Long score;
@@ -32,15 +29,13 @@ public class CourseResponse {
     private final List<PoiSetResponse> poiList;
 
     private CourseResponse(Long courseId,
-                           Long coupleId,
                            String title,
-                           String info,
+                           String description,
                            Long score,
                            List<PoiSetResponse> poiList) {
         this.courseId = courseId;
-        this.coupleId = coupleId;
         this.title = title;
-        this.info = info;
+        this.description = description;
         this.score = score;
         this.poiList = poiList;
     }
@@ -53,9 +48,8 @@ public class CourseResponse {
                 .collect(Collectors.toList());
         return new CourseResponse(
                 course.getId(),
-                course.getCoupleId(),
                 course.getTitle(),
-                course.getInfo(),
+                course.getDescription(),
                 course.getScore(),
                 poiList
         );
@@ -65,16 +59,12 @@ public class CourseResponse {
         return courseId;
     }
 
-    public Long getCoupleId() {
-        return coupleId;
-    }
-
     public String getTitle() {
         return title;
     }
 
-    public String getInfo() {
-        return info;
+    public String getDescription() {
+        return description;
     }
 
     public Long getScore() {
@@ -93,16 +83,12 @@ public class CourseResponse {
         @Schema(description = "Order of the POI within the course", example = "1")
         private final Integer order;
 
-        @Schema(description = "Rating given to this POI within the course", example = "5")
-        private final Integer rating;
-
         @Schema(description = "Detailed POI information")
         private final PoiResponse poi;
 
-        private PoiSetResponse(Long poiSetId, Integer order, Integer rating, PoiResponse poi) {
+        private PoiSetResponse(Long poiSetId, Integer order, PoiResponse poi) {
             this.poiSetId = poiSetId;
             this.order = order;
-            this.rating = rating;
             this.poi = poi;
         }
 
@@ -111,7 +97,6 @@ public class CourseResponse {
             return new PoiSetResponse(
                     poiSet.getId(),
                     poiSet.getOrderIndex(),
-                    poiSet.getRating(),
                     poi != null ? PoiResponse.from(poi) : null
             );
         }
@@ -122,10 +107,6 @@ public class CourseResponse {
 
         public Integer getOrder() {
             return order;
-        }
-
-        public Integer getRating() {
-            return rating;
         }
 
         public PoiResponse getPoi() {
@@ -162,17 +143,17 @@ public class CourseResponse {
         @Schema(description = "Alcohol availability", example = "1")
         private final Integer alcohol;
 
-        @Schema(description = "Mood tag identifier", example = "1001")
-        private final Long moodTag;
+        @Schema(description = "Mood tag identifier in camelCase", example = "warmVibes")
+        private final String moodTag;
 
-        @Schema(description = "Food tags", example = "[\"COFFEE\", \"DESSERT\"]")
+        @Schema(description = "Food tags", example = "[\"coffee\", \"dessert\"]")
         private final List<String> foodTag;
-
-        @Schema(description = "Average rating", example = "4.3")
-        private final Double ratingAvg;
 
         @Schema(description = "External link", example = "https://example.com")
         private final String link;
+
+        @Schema(description = "Average rating", example = "4.3")
+        private final Double ratingAvg;
 
         private PoiResponse(Long poiId,
                             String name,
@@ -183,10 +164,10 @@ public class CourseResponse {
                             Integer priceLevel,
                             Map<String, String> openHours,
                             Integer alcohol,
-                            Long moodTag,
+                            String moodTag,
                             List<String> foodTag,
-                            Double ratingAvg,
-                            String link) {
+                            String link,
+                            Double ratingAvg) {
             this.poiId = poiId;
             this.name = name;
             this.category = category;
@@ -198,8 +179,8 @@ public class CourseResponse {
             this.alcohol = alcohol;
             this.moodTag = moodTag;
             this.foodTag = foodTag;
-            this.ratingAvg = ratingAvg;
             this.link = link;
+            this.ratingAvg = ratingAvg;
         }
 
         private static PoiResponse from(Poi poi) {
@@ -215,8 +196,8 @@ public class CourseResponse {
                     poi.getAlcohol(),
                     poi.getMoodTag(),
                     poi.getFoodTag() != null ? List.copyOf(poi.getFoodTag()) : List.of(),
-                    poi.getRatingAvg(),
-                    poi.getLink()
+                    poi.getLink(),
+                    poi.getRatingAvg()
             );
         }
 
@@ -256,7 +237,7 @@ public class CourseResponse {
             return alcohol;
         }
 
-        public Long getMoodTag() {
+        public String getMoodTag() {
             return moodTag;
         }
 
@@ -264,12 +245,12 @@ public class CourseResponse {
             return foodTag;
         }
 
-        public Double getRatingAvg() {
-            return ratingAvg;
-        }
-
         public String getLink() {
             return link;
+        }
+
+        public Double getRatingAvg() {
+            return ratingAvg;
         }
     }
 }

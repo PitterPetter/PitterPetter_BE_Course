@@ -41,7 +41,7 @@ public class CourseService {
         Course course = new Course();
         course.setCoupleId(coupleId);
         course.setTitle(request.getTitle());
-        course.setInfo(request.getExplain());
+        course.setDescription(request.getExplain());
         course.setScore(0L);
 
         Course persistedCourse = courseRepository.save(course);
@@ -57,8 +57,6 @@ public class CourseService {
             poiSet.setCourse(persistedCourse);
             poiSet.setPoi(poi);
             poiSet.setOrderIndex(order);
-            poiSet.setRating(null);
-
             PoiSet savedPoiSet = poiSetRepository.save(poiSet);
             poiSets.add(savedPoiSet);
         }
@@ -94,6 +92,12 @@ public class CourseService {
         courseRepository.delete(course);
     }
 
+    public void updateReviewScore(long userId, long coupleId, long courseId, int reviewScore) {
+        Course course = courseRepository.findByIdAndCoupleId(courseId, coupleId)
+                .orElseThrow(() -> new EntityNotFoundException("Course not found for coupleId: " + coupleId + ", courseId: " + courseId));
+        course.setScore((long) reviewScore);
+    }
+
     private Poi upsertPoi(PoiItem item) {
         Optional<Poi> existingOptional = poiRepository.findByNameAndLatAndLng(item.getName(), item.getLat(), item.getLng());
         if (existingOptional.isPresent()) {
@@ -115,7 +119,8 @@ public class CourseService {
         poi.setLat(item.getLat());
         poi.setLng(item.getLng());
         poi.setIndoor(item.getIndoor());
-        poi.setMoodTag(item.getMoodTag());
+        String moodTag = StringUtils.trimWhitespace(item.getMoodTag());
+        poi.setMoodTag(moodTag);
     }
 
     private void applyOptionalPoiFields(Poi poi, PoiItem item) {
@@ -132,7 +137,11 @@ public class CourseService {
             poi.setOpenHours(sanitizedOpenHours(item.getOpenHours()));
         }
         if (item.getFoodTag() != null) {
-            poi.setFoodTag(item.getFoodTag());
+            List<String> sanitizedTags = item.getFoodTag().stream()
+                    .filter(StringUtils::hasText)
+                    .map(StringUtils::trimWhitespace)
+                    .toList();
+            poi.setFoodTag(sanitizedTags);
         }
         if (item.getLink() != null) {
             String normalizedLink = normalizeLink(item.getLink());
@@ -141,7 +150,8 @@ public class CourseService {
     }
 
     private String normalizeLink(String link) {
-        return StringUtils.hasText(link) ? link : null;
+        String trimmed = StringUtils.trimWhitespace(link);
+        return StringUtils.hasText(trimmed) ? trimmed : null;
     }
 
     private Map<String, String> sanitizedOpenHours(Map<String, String> openHours) {
