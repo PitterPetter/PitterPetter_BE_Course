@@ -86,14 +86,16 @@ public class CourseService {
         return courses;
     }
 
-    public void deleteCourse(Long coupleId, Long courseId) {
-        Course course = courseRepository.findByIdAndCoupleId(courseId, coupleId)
+    public void deleteCourse(Long coupleId, String courseId) {
+        long parsedCourseId = parseCourseId(courseId);
+        Course course = courseRepository.findByIdAndCoupleId(parsedCourseId, coupleId)
                 .orElseThrow(() -> new EntityNotFoundException("Course not found for coupleId: " + coupleId + ", courseId: " + courseId));
         courseRepository.delete(course);
     }
 
-    public void updateReviewScore(long userId, long coupleId, long courseId, int reviewScore) {
-        Course course = courseRepository.findByIdAndCoupleId(courseId, coupleId)
+    public void updateReviewScore(long userId, long coupleId, String courseId, int reviewScore) {
+        long parsedCourseId = parseCourseId(courseId);
+        Course course = courseRepository.findByIdAndCoupleId(parsedCourseId, coupleId)
                 .orElseThrow(() -> new EntityNotFoundException("Course not found for coupleId: " + coupleId + ", courseId: " + courseId));
         course.setScore((long) reviewScore);
     }
@@ -203,5 +205,20 @@ public class CourseService {
     }
 
     public record CourseCreationResult(Course course, List<PoiSet> poiSets) {
+    }
+
+    private long parseCourseId(String courseId) {
+        if (!StringUtils.hasText(courseId)) {
+            throw new EntityNotFoundException("Course not found for courseId: " + courseId);
+        }
+        try {
+            long parsed = Long.parseLong(courseId);
+            if (parsed <= 0) {
+                throw new NumberFormatException();
+            }
+            return parsed;
+        } catch (NumberFormatException ex) {
+            throw new EntityNotFoundException("Course not found for courseId: " + courseId);
+        }
     }
 }

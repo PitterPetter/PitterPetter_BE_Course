@@ -97,7 +97,7 @@ public class CourseController {
                             array = @ArraySchema(schema = @Schema(implementation = CourseResponse.class)),
                             examples = @ExampleObject(
                                     name = "Courses",
-                                    value = "[\n  {\n    \"courseId\": 1,\n    \"title\": \"주말 데이트 코스\",\n    \"description\": \"서울숲 산책과 카페 방문 코스\",\n    \"score\": 10,\n    \"poiList\": [\n      {\n        \"poiSetId\": 11,\n        \"order\": 1,\n        \"poi\": {\n          \"poiId\": 101,\n          \"name\": \"Blue Bottle Yeonnam\",\n          \"category\": \"CAFE\",\n          \"lat\": 37.56231,\n          \"lng\": 126.92501,\n          \"indoor\": true,\n          \"priceLevel\": 2,\n          \"openHours\": {\n            \"mon\": \"09:00-18:00\"\n          },\n          \"alcohol\": 0,\n          \"moodTag\": \"lovely\",\n          \"foodTag\": [\"coffee\", \"dessert\"],\n          \"link\": \"https://example.com\",\n          \"ratingAvg\": 4.3\n        }\n      }\n    ]\n  }\n]"
+                                    value = "[\n  {\n    \"courseId\": \"1\",\n    \"title\": \"주말 데이트 코스\",\n    \"description\": \"서울숲 산책과 카페 방문 코스\",\n    \"score\": 10,\n    \"poiList\": [\n      {\n        \"poiSetId\": 11,\n        \"order\": 1,\n        \"poi\": {\n          \"poiId\": 101,\n          \"name\": \"Blue Bottle Yeonnam\",\n          \"category\": \"CAFE\",\n          \"lat\": 37.56231,\n          \"lng\": 126.92501,\n          \"indoor\": true,\n          \"priceLevel\": 2,\n          \"openHours\": {\n            \"mon\": \"09:00-18:00\"\n          },\n          \"alcohol\": 0,\n          \"moodTag\": \"lovely\",\n          \"foodTag\": [\"coffee\", \"dessert\"],\n          \"link\": \"https://example.com\",\n          \"ratingAvg\": 4.3\n        }\n      }\n    ]\n  }\n]"
                             )
                     )
             ),
@@ -137,7 +137,7 @@ public class CourseController {
     })
     public StatusResponse deleteCourse(
             @AuthenticationPrincipal Jwt jwt,
-            @PathVariable Long courseId
+            @PathVariable String courseId
     ) {
         long coupleId = requireCoupleId(jwt);
         courseService.deleteCourse(coupleId, courseId);
@@ -167,7 +167,7 @@ public class CourseController {
     })
     public StatusResponse updateCourseReview(
             @AuthenticationPrincipal Jwt jwt,
-            @PathVariable Long courseId,
+            @PathVariable String courseId,
             @Valid @RequestBody UpdateCourseReviewRequest request
     ) {
         long userId = requireUserId(jwt);
