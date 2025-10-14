@@ -32,7 +32,7 @@ public class CourseGetResponse {
                 .map(PoiSetResponse::from)
                 .collect(Collectors.toList());
         return new CourseGetResponse(
-                course.getId() != null ? String.valueOf(course.getId()) : null,
+                course.getId(),
                 course.getTitle(),
                 course.getDescription(),
                 course.getScore(),

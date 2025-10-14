@@ -8,7 +8,7 @@ import org.springframework.data.repository.query.Param;
 import java.util.List;
 import java.util.Optional;
 
-public interface CourseRepository extends JpaRepository<Course, Long> {
+public interface CourseRepository extends JpaRepository<Course, String> {
 
     @Query("""
             select distinct c from Course c
@@ -16,7 +16,7 @@ public interface CourseRepository extends JpaRepository<Course, Long> {
             left join fetch ps.poi
             where c.id = :courseId
             """)
-    Optional<Course> findByIdWithPoiSets(@Param("courseId") Long courseId);
+    Optional<Course> findByIdWithPoiSets(@Param("courseId") String courseId);
 
     @Query("""
             select distinct c from Course c
@@ -27,7 +27,7 @@ public interface CourseRepository extends JpaRepository<Course, Long> {
             """)
     List<Course> findAllByCoupleIdWithPoiSets(@Param("coupleId") String coupleId);
 
-    Optional<Course> findByIdAndCoupleId(Long id, String coupleId);
+    Optional<Course> findByIdAndCoupleId(String id, String coupleId);
 
-    long deleteByIdAndCoupleId(Long id, String coupleId);
+    long deleteByIdAndCoupleId(String id, String coupleId);
 }

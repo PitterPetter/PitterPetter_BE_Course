@@ -47,7 +47,7 @@ public class CourseResponse {
                 .map(PoiSetResponse::from)
                 .collect(Collectors.toList());
         return new CourseResponse(
-                course.getId() != null ? String.valueOf(course.getId()) : null,
+                course.getId(),
                 course.getTitle(),
                 course.getDescription(),
                 course.getScore(),
