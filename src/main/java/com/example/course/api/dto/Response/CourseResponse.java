@@ -13,8 +13,8 @@ import java.util.stream.Collectors;
 @Schema(description = "Course representation")
 public class CourseResponse {
 
-    @Schema(description = "Identifier of the course", example = "1")
-    private final Long courseId;
+    @Schema(description = "Identifier of the course", example = "\"1\"")
+    private final String courseId;
 
     @Schema(description = "Course title", example = "주말 데이트 코스")
     private final String title;
@@ -28,7 +28,7 @@ public class CourseResponse {
     @Schema(description = "Ordered list of POIs that compose the course")
     private final List<PoiSetResponse> poiList;
 
-    private CourseResponse(Long courseId,
+    private CourseResponse(String courseId,
                            String title,
                            String description,
                            Long score,
@@ -55,7 +55,7 @@ public class CourseResponse {
         );
     }
 
-    public Long getCourseId() {
+    public String getCourseId() {
         return courseId;
     }
 
