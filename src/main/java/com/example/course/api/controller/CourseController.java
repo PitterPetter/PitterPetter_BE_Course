@@ -76,7 +76,7 @@ public class CourseController {
             @AuthenticationPrincipal Jwt jwt,
             @Valid @RequestBody CreateCourseRequest request
     ) {
-        long coupleId = requireCoupleId(jwt);
+        String coupleId = requireCoupleId(jwt);
         courseService.createCourse(coupleId, request);
         return StatusResponse.success();
     }
@@ -97,7 +97,7 @@ public class CourseController {
                             array = @ArraySchema(schema = @Schema(implementation = CourseResponse.class)),
                             examples = @ExampleObject(
                                     name = "Courses",
-                                    value = "[\n  {\n    \"courseId\": 1,\n    \"title\": \"주말 데이트 코스\",\n    \"description\": \"서울숲 산책과 카페 방문 코스\",\n    \"score\": 10,\n    \"poiList\": [\n      {\n        \"poiSetId\": 11,\n        \"order\": 1,\n        \"poi\": {\n          \"poiId\": 101,\n          \"name\": \"Blue Bottle Yeonnam\",\n          \"category\": \"CAFE\",\n          \"lat\": 37.56231,\n          \"lng\": 126.92501,\n          \"indoor\": true,\n          \"priceLevel\": 2,\n          \"openHours\": {\n            \"mon\": \"09:00-18:00\"\n          },\n          \"alcohol\": 0,\n          \"moodTag\": \"lovely\",\n          \"foodTag\": [\"coffee\", \"dessert\"],\n          \"link\": \"https://example.com\",\n          \"ratingAvg\": 4.3\n        }\n      }\n    ]\n  }\n]"
+                                    value = "[\n  {\n    \"courseId\": \"1\",\n    \"title\": \"주말 데이트 코스\",\n    \"description\": \"서울숲 산책과 카페 방문 코스\",\n    \"score\": 10,\n    \"poiList\": [\n      {\n        \"poiSetId\": 11,\n        \"order\": 1,\n        \"poi\": {\n          \"poiId\": 101,\n          \"name\": \"Blue Bottle Yeonnam\",\n          \"category\": \"CAFE\",\n          \"lat\": 37.56231,\n          \"lng\": 126.92501,\n          \"indoor\": true,\n          \"priceLevel\": 2,\n          \"openHours\": {\n            \"mon\": \"09:00-18:00\"\n          },\n          \"alcohol\": 0,\n          \"moodTag\": \"lovely\",\n          \"foodTag\": [\"coffee\", \"dessert\"],\n          \"link\": \"https://example.com\",\n          \"ratingAvg\": 4.3\n        }\n      }\n    ]\n  }\n]"
                             )
                     )
             ),
@@ -106,7 +106,7 @@ public class CourseController {
     public List<CourseResponse> getCourses(
             @AuthenticationPrincipal Jwt jwt
     ) {
-        long coupleId = requireCoupleId(jwt);
+        String coupleId = requireCoupleId(jwt);
         return courseService.findCoursesByCoupleId(coupleId)
                 .stream()
                 .map(CourseResponse::from)
@@ -137,9 +137,9 @@ public class CourseController {
     })
     public StatusResponse deleteCourse(
             @AuthenticationPrincipal Jwt jwt,
-            @PathVariable Long courseId
+            @PathVariable String courseId
     ) {
-        long coupleId = requireCoupleId(jwt);
+        String coupleId = requireCoupleId(jwt);
         courseService.deleteCourse(coupleId, courseId);
         return StatusResponse.success();
     }
@@ -167,31 +167,31 @@ public class CourseController {
     })
     public StatusResponse updateCourseReview(
             @AuthenticationPrincipal Jwt jwt,
-            @PathVariable Long courseId,
+            @PathVariable String courseId,
             @Valid @RequestBody UpdateCourseReviewRequest request
     ) {
-        long userId = requireUserId(jwt);
-        long coupleId = requireCoupleId(jwt);
+        String userId = requireUserId(jwt);
+        String coupleId = requireCoupleId(jwt);
         courseService.updateReviewScore(userId, coupleId, courseId, request.getReviewScore());
         return StatusResponse.success();
     }
 
-    private long requireUserId(Jwt jwt) {
+    private String requireUserId(Jwt jwt) {
         return extractRequiredId(jwt, List.of("userId"));
     }
 
-    private long requireCoupleId(Jwt jwt) {
+    private String requireCoupleId(Jwt jwt) {
         return extractRequiredId(jwt, List.of("coupleId"));
     }
 
-    private long extractRequiredId(Jwt jwt, List<String> claimKeys) {
+    private String extractRequiredId(Jwt jwt, List<String> claimKeys) {
         if (jwt == null) {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, LOGIN_REQUIRED_MESSAGE);
         }
         Map<String, Object> claims = jwt.getClaims();
         for (String key : claimKeys) {
             Object raw = claims.get(key);
-            Long value = toPositiveLong(raw);
+            String value = toNonBlankString(raw);
             if (value != null) {
                 return value;
             }
@@ -199,18 +199,14 @@ public class CourseController {
         throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, LOGIN_REQUIRED_MESSAGE);
     }
 
-    private Long toPositiveLong(Object value) {
+    private String toNonBlankString(Object value) {
+        if (value instanceof String stringValue) {
+            String trimmed = stringValue.trim();
+            return !trimmed.isEmpty() ? trimmed : null;
+        }
         if (value instanceof Number number) {
             long converted = number.longValue();
-            return converted > 0 ? converted : null;
-        }
-        if (value instanceof String stringValue) {
-            try {
-                long parsed = Long.parseLong(stringValue);
-                return parsed > 0 ? parsed : null;
-            } catch (NumberFormatException ignored) {
-                return null;
-            }
+            return converted > 0 ? Long.toString(converted) : null;
         }
         return null;
     }

@@ -9,13 +9,13 @@ import java.util.stream.Collectors;
 
 public class CourseGetResponse {
 
-    private final Long courseId;
+    private final String courseId;
     private final String title;
     private final String description;
     private final Long score;
     private final List<PoiSetResponse> poiSets;
 
-    private CourseGetResponse(Long courseId,
+    private CourseGetResponse(String courseId,
                               String title,
                               String description,
                               Long score,
@@ -40,7 +40,7 @@ public class CourseGetResponse {
         );
     }
 
-    public Long getCourseId() {
+    public String getCourseId() {
         return courseId;
     }
 
