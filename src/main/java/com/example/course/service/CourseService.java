@@ -37,7 +37,7 @@ public class CourseService {
         this.poiSetRepository = poiSetRepository;
     }
 
-    public CourseCreationResult createCourse(Long coupleId, CreateCourseRequest request) {
+    public CourseCreationResult createCourse(String coupleId, CreateCourseRequest request) {
         Course course = new Course();
         course.setCoupleId(coupleId);
         course.setTitle(request.getTitle());
@@ -66,7 +66,7 @@ public class CourseService {
     }
 
     @Transactional(readOnly = true)
-    public List<Course> findCoursesByCoupleId(Long coupleId) {
+    public List<Course> findCoursesByCoupleId(String coupleId) {
         List<Course> courses = courseRepository.findAllByCoupleIdWithPoiSets(coupleId);
         if (courses.isEmpty()) {
             throw new EntityNotFoundException("Courses not found for coupleId: " + coupleId);
@@ -86,14 +86,14 @@ public class CourseService {
         return courses;
     }
 
-    public void deleteCourse(Long coupleId, String courseId) {
+    public void deleteCourse(String coupleId, String courseId) {
         long parsedCourseId = parseCourseId(courseId);
         Course course = courseRepository.findByIdAndCoupleId(parsedCourseId, coupleId)
                 .orElseThrow(() -> new EntityNotFoundException("Course not found for coupleId: " + coupleId + ", courseId: " + courseId));
         courseRepository.delete(course);
     }
 
-    public void updateReviewScore(long userId, long coupleId, String courseId, int reviewScore) {
+    public void updateReviewScore(String userId, String coupleId, String courseId, int reviewScore) {
         long parsedCourseId = parseCourseId(courseId);
         Course course = courseRepository.findByIdAndCoupleId(parsedCourseId, coupleId)
                 .orElseThrow(() -> new EntityNotFoundException("Course not found for coupleId: " + coupleId + ", courseId: " + courseId));

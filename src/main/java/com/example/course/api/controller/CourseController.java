@@ -76,7 +76,7 @@ public class CourseController {
             @AuthenticationPrincipal Jwt jwt,
             @Valid @RequestBody CreateCourseRequest request
     ) {
-        long coupleId = requireCoupleId(jwt);
+        String coupleId = requireCoupleId(jwt);
         courseService.createCourse(coupleId, request);
         return StatusResponse.success();
     }
@@ -106,7 +106,7 @@ public class CourseController {
     public List<CourseResponse> getCourses(
             @AuthenticationPrincipal Jwt jwt
     ) {
-        long coupleId = requireCoupleId(jwt);
+        String coupleId = requireCoupleId(jwt);
         return courseService.findCoursesByCoupleId(coupleId)
                 .stream()
                 .map(CourseResponse::from)
@@ -139,7 +139,7 @@ public class CourseController {
             @AuthenticationPrincipal Jwt jwt,
             @PathVariable String courseId
     ) {
-        long coupleId = requireCoupleId(jwt);
+        String coupleId = requireCoupleId(jwt);
         courseService.deleteCourse(coupleId, courseId);
         return StatusResponse.success();
     }
@@ -170,28 +170,28 @@ public class CourseController {
             @PathVariable String courseId,
             @Valid @RequestBody UpdateCourseReviewRequest request
     ) {
-        long userId = requireUserId(jwt);
-        long coupleId = requireCoupleId(jwt);
+        String userId = requireUserId(jwt);
+        String coupleId = requireCoupleId(jwt);
         courseService.updateReviewScore(userId, coupleId, courseId, request.getReviewScore());
         return StatusResponse.success();
     }
 
-    private long requireUserId(Jwt jwt) {
+    private String requireUserId(Jwt jwt) {
         return extractRequiredId(jwt, List.of("userId"));
     }
 
-    private long requireCoupleId(Jwt jwt) {
+    private String requireCoupleId(Jwt jwt) {
         return extractRequiredId(jwt, List.of("coupleId"));
     }
 
-    private long extractRequiredId(Jwt jwt, List<String> claimKeys) {
+    private String extractRequiredId(Jwt jwt, List<String> claimKeys) {
         if (jwt == null) {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, LOGIN_REQUIRED_MESSAGE);
         }
         Map<String, Object> claims = jwt.getClaims();
         for (String key : claimKeys) {
             Object raw = claims.get(key);
-            Long value = toPositiveLong(raw);
+            String value = toNonBlankString(raw);
             if (value != null) {
                 return value;
             }
@@ -199,18 +199,14 @@ public class CourseController {
         throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, LOGIN_REQUIRED_MESSAGE);
     }
 
-    private Long toPositiveLong(Object value) {
+    private String toNonBlankString(Object value) {
+        if (value instanceof String stringValue) {
+            String trimmed = stringValue.trim();
+            return !trimmed.isEmpty() ? trimmed : null;
+        }
         if (value instanceof Number number) {
             long converted = number.longValue();
-            return converted > 0 ? converted : null;
-        }
-        if (value instanceof String stringValue) {
-            try {
-                long parsed = Long.parseLong(stringValue);
-                return parsed > 0 ? parsed : null;
-            } catch (NumberFormatException ignored) {
-                return null;
-            }
+            return converted > 0 ? Long.toString(converted) : null;
         }
         return null;
     }

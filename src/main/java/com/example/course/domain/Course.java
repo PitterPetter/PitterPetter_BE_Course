@@ -18,8 +18,8 @@ public class Course {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "couple_id", nullable = false)
-    private Long coupleId;
+    @Column(name = "couple_id", nullable = false, length = 100)
+    private String coupleId;
 
     @Column(nullable = false, length = 200)
     private String title;
@@ -45,11 +45,11 @@ public class Course {
         return id;
     }
 
-    public Long getCoupleId() {
+    public String getCoupleId() {
         return coupleId;
     }
 
-    public void setCoupleId(Long coupleId) {
+    public void setCoupleId(String coupleId) {
         this.coupleId = coupleId;
     }
 

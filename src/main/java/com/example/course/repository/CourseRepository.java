@@ -25,9 +25,9 @@ public interface CourseRepository extends JpaRepository<Course, Long> {
             where c.coupleId = :coupleId
             order by c.createdAt desc
             """)
-    List<Course> findAllByCoupleIdWithPoiSets(@Param("coupleId") Long coupleId);
+    List<Course> findAllByCoupleIdWithPoiSets(@Param("coupleId") String coupleId);
 
-    Optional<Course> findByIdAndCoupleId(Long id, Long coupleId);
+    Optional<Course> findByIdAndCoupleId(Long id, String coupleId);
 
-    long deleteByIdAndCoupleId(Long id, Long coupleId);
+    long deleteByIdAndCoupleId(Long id, String coupleId);
 }
