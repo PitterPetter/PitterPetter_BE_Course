@@ -1,6 +1,7 @@
 package com.example.course.jwt;
 
 import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.oauth2.jose.jws.MacAlgorithm;
 import org.springframework.security.oauth2.jwt.Jwt;
@@ -15,17 +16,21 @@ import javax.crypto.spec.SecretKeySpec;
 import java.nio.charset.StandardCharsets;
 
 @Getter
+@Slf4j
 @Component
 public class JwtProvider {
 
     private static final String BEARER_PREFIX = "Bearer ";
+    private static final String LOG_PREFIX = "[JwtProvider]";
 
     private final JwtDecoder jwtDecoder;
 
     private String resolveToken(String authorizationHeader) {
         if (!StringUtils.hasText(authorizationHeader) || !authorizationHeader.startsWith(BEARER_PREFIX)) {
+            log.warn("{} Authorization 헤더가 비어있거나 Bearer 형식이 아님", LOG_PREFIX);
             throw new IllegalArgumentException("Authorization header must start with 'Bearer '");
         }
+        log.debug("{} Authorization 헤더 형식 검증 완료", LOG_PREFIX);
         return authorizationHeader.substring(BEARER_PREFIX.length());
     }
 
@@ -57,8 +62,13 @@ public class JwtProvider {
     private String getClaimAsString(String token, String claimName) {
         try {
             Jwt jwt = jwtDecoder.decode(token);
+
+            log.info("{} JWT 디코딩 성공 claim={} 포함여부={}", LOG_PREFIX, claimName, jwt.getClaims().containsKey(claimName));
+
             return getClaimAsString(jwt, claimName);
+
         } catch (JwtException ex) {
+            log.warn("{} JWT 디코딩 실패 message={}", LOG_PREFIX, ex.getMessage());
             throw new IllegalArgumentException("Invalid JWT token", ex);
         }
     }
@@ -71,14 +81,24 @@ public class JwtProvider {
                 return trimmed;
             }
         }
-        if (claimValue instanceof Number number) {
-            long converted = number.longValue();
-            if (converted > 0) {
-                return Long.toString(converted);
-            }
-        }
-        throw new IllegalArgumentException(claimName + " claim is missing or blank in JWT");
+>         if (claimValue instanceof String stringValue) {
+              String trimmed = stringValue.trim();
+              if (StringUtils.hasText(trimmed)) {
+                  return trimmed;
+              }
+          }
+          if (claimValue instanceof Number number) {
+              long converted = number.longValue();
+              if (converted > 0) {
+                  log.warn("{} JWT claim이 숫자 형식이 아님 claim={}", LOG_PREFIX, claimName);
+                  return Long.toString(converted);
+              }
+          }
+          log.warn("{} JWT claim 누락 claim={}", LOG_PREFIX, claimName);
+          throw new IllegalArgumentException(claimName + " claim is missing or blank in JWT");
+
     }
 
 
 }
+
