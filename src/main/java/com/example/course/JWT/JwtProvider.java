@@ -1,5 +1,6 @@
 package com.example.course.jwt;
 
+import io.jsonwebtoken.security.Keys;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -12,7 +13,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
 import javax.crypto.SecretKey;
-import javax.crypto.spec.SecretKeySpec;
+import java.util.Base64;
 import java.nio.charset.StandardCharsets;
 
 @Getter
@@ -38,10 +39,24 @@ public class JwtProvider {
         if (!StringUtils.hasText(secret)) {
             throw new IllegalArgumentException("JWT secret must not be blank");
         }
-        SecretKey key = new SecretKeySpec(secret.getBytes(StandardCharsets.UTF_8), "HmacSHA256");
+        SecretKey key = buildSecretKey(secret);
         this.jwtDecoder = NimbusJwtDecoder.withSecretKey(key)
                 .macAlgorithm(MacAlgorithm.HS256)
                 .build();
+    }
+
+    private SecretKey buildSecretKey(String secret) {
+        try {
+            byte[] decoded = Base64.getDecoder().decode(secret);
+            SecretKey key = Keys.hmacShaKeyFor(decoded);
+            log.info("{} JWT 시크릿 키 Base64 디코딩 성공 length={} bytes", LOG_PREFIX, decoded.length);
+            return key;
+        } catch (IllegalArgumentException ex) {
+            byte[] raw = secret.getBytes(StandardCharsets.UTF_8);
+            SecretKey key = Keys.hmacShaKeyFor(raw);
+            log.info("{} JWT 시크릿 키 UTF-8 바이트 사용 length={} bytes", LOG_PREFIX, raw.length);
+            return key;
+        }
     }
 
     public String extractCoupleId(Jwt jwt) {
@@ -90,4 +105,3 @@ public class JwtProvider {
         throw new IllegalArgumentException(claimName + " claim is missing or blank in JWT");
     }
 }
-
