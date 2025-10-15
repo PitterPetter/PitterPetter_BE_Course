@@ -15,11 +15,9 @@ import org.springframework.security.web.SecurityFilterChain;
 public class SecurityConfig {
 
     private final JwtProvider jwtProvider;
-    private final RequestLoggingFilter requestLoggingFilter;
 
-    public SecurityConfig(JwtProvider jwtProvider, RequestLoggingFilter requestLoggingFilter) {
+    public SecurityConfig(JwtProvider jwtProvider) {
         this.jwtProvider = jwtProvider;
-        this.requestLoggingFilter = requestLoggingFilter;
     }
 
     @Bean
@@ -28,7 +26,7 @@ public class SecurityConfig {
                 .csrf(AbstractHttpConfigurer::disable)
                 .cors(Customizer.withDefaults())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .addFilterBefore(requestLoggingFilter, BearerTokenAuthenticationFilter.class)
+                .addFilterBefore(requestLoggingFilter(), BearerTokenAuthenticationFilter.class)
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(
                                 "/docs",
@@ -38,6 +36,9 @@ public class SecurityConfig {
                                 "/v3/api-docs",
                                 "/v3/api-docs/**",
                                 "/actuator/**",
+                                "/courses/**",
+                                "/course/**",
+                                "/api/course/**",
                                 "/api/courses/**",
                                 "/api/course/swagger-ui.html",
                                 "/api/course/swagger-ui/**",
