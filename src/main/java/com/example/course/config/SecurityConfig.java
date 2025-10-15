@@ -7,14 +7,18 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.oauth2.server.resource.web.BearerTokenAuthenticationEntryPoint;
+import org.springframework.security.oauth2.server.resource.web.BearerTokenAuthenticationFilter;
 
 @Configuration
 public class SecurityConfig {
 
     private final JwtProvider jwtProvider;
+    private final RequestLoggingFilter requestLoggingFilter;
 
-    public SecurityConfig(JwtProvider jwtProvider) {
+    public SecurityConfig(JwtProvider jwtProvider, RequestLoggingFilter requestLoggingFilter) {
         this.jwtProvider = jwtProvider;
+        this.requestLoggingFilter = requestLoggingFilter;
     }
 
     @Bean
@@ -22,6 +26,7 @@ public class SecurityConfig {
         http
                 .csrf(AbstractHttpConfigurer::disable)
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .addFilterBefore(requestLoggingFilter, BearerTokenAuthenticationFilter.class)
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(
                                 "/docs",
@@ -37,7 +42,15 @@ public class SecurityConfig {
                         ).permitAll()
                         .anyRequest().authenticated()
                 )
-                .oauth2ResourceServer(oauth2 -> oauth2.jwt(jwt -> jwt.decoder(jwtProvider.getJwtDecoder())));
+                .oauth2ResourceServer(oauth2 -> oauth2
+                        .authenticationEntryPoint(new LoggingAuthenticationEntryPoint(new BearerTokenAuthenticationEntryPoint()))
+                        .jwt(jwt -> jwt.decoder(jwtProvider.getJwtDecoder()))
+                );
         return http.build();
+    }
+
+    @Bean
+    public RequestLoggingFilter requestLoggingFilter() {
+        return new RequestLoggingFilter();
     }
 }

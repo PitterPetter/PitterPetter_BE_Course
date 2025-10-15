@@ -25,6 +25,9 @@ import org.springframework.web.server.ResponseStatusException;
 import java.util.List;
 import java.util.Map;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 @RestController
 @RequestMapping(value = "/api", produces = "application/json")
 @Validated
@@ -34,6 +37,8 @@ public class CourseController {
 
     private final CourseService courseService;
     private static final String LOGIN_REQUIRED_MESSAGE = "로그인 후 진행해주세요.";
+    private static final Logger log = LoggerFactory.getLogger(CourseController.class);
+    private static final String LOG_PREFIX = "[CourseController]";
 
     public CourseController(CourseService courseService) {
         this.courseService = courseService;
@@ -186,6 +191,7 @@ public class CourseController {
 
     private long extractRequiredId(Jwt jwt, List<String> claimKeys) {
         if (jwt == null) {
+            log.warn("{} JWT 주체가 없어 401 반환", LOG_PREFIX);
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, LOGIN_REQUIRED_MESSAGE);
         }
         Map<String, Object> claims = jwt.getClaims();
@@ -196,6 +202,7 @@ public class CourseController {
                 return value;
             }
         }
+        log.warn("{} 필수 claim 누락 claims={} requiredKeys={} → 401", LOG_PREFIX, claims.keySet(), claimKeys);
         throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, LOGIN_REQUIRED_MESSAGE);
     }
 
