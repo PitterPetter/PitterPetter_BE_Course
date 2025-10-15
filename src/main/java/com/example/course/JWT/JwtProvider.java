@@ -46,46 +46,59 @@ public class JwtProvider {
         // 컨트롤러 메서드에 @AuthenticationPrincipal Jwt jwt라는 파라미터가 있으면, 방금 SecurityContext에 저장된 Jwt 객체가 그대로 주입됨
     }
 
-    public Long extractCoupleId(Jwt jwt) {
-        return getClaimAsLong(jwt, "coupleId");
+    public String extractCoupleId(Jwt jwt) {
+        return getClaimAsString(jwt, "coupleId");
     }
 
-    public Long extractCoupleId(String authorizationHeader) {
+    public String extractCoupleId(String authorizationHeader) {
         String token = resolveToken(authorizationHeader);
         return getCoupleIdFromToken(token);
     }
 
-    public Long getCoupleIdFromToken(String token) {
-        return getClaimAsLong(token, "coupleId");
+    public String getCoupleIdFromToken(String token) {
+        return getClaimAsString(token, "coupleId");
     }
 
-    private Long getClaimAsLong(String token, String claimName) {
+    private String getClaimAsString(String token, String claimName) {
         try {
             Jwt jwt = jwtDecoder.decode(token);
+
             log.info("{} JWT 디코딩 성공 claim={} 포함여부={}", LOG_PREFIX, claimName, jwt.getClaims().containsKey(claimName));
-            return getClaimAsLong(jwt, claimName);
+
+            return getClaimAsString(jwt, claimName);
+
         } catch (JwtException ex) {
             log.warn("{} JWT 디코딩 실패 message={}", LOG_PREFIX, ex.getMessage());
             throw new IllegalArgumentException("Invalid JWT token", ex);
         }
     }
 
-    private Long getClaimAsLong(Jwt jwt, String claimName) {
+    private String getClaimAsString(Jwt jwt, String claimName) {
         Object claimValue = jwt.getClaims().get(claimName);
-        if (claimValue instanceof Number number) {
-            return number.longValue();
-        }
-        if (claimValue instanceof String stringValue && StringUtils.hasText(stringValue)) {
-            try {
-                return Long.parseLong(stringValue);
-            } catch (NumberFormatException ex) {
-                log.warn("{} JWT claim이 숫자 형식이 아님 claim={}", LOG_PREFIX, claimName);
-                throw new IllegalArgumentException(claimName + " claim must be numeric", ex);
+        if (claimValue instanceof String stringValue) {
+            String trimmed = stringValue.trim();
+            if (StringUtils.hasText(trimmed)) {
+                return trimmed;
             }
         }
-        log.warn("{} JWT claim 누락 claim={}", LOG_PREFIX, claimName);
-        throw new IllegalArgumentException(claimName + " claim is missing in JWT");
+>         if (claimValue instanceof String stringValue) {
+              String trimmed = stringValue.trim();
+              if (StringUtils.hasText(trimmed)) {
+                  return trimmed;
+              }
+          }
+          if (claimValue instanceof Number number) {
+              long converted = number.longValue();
+              if (converted > 0) {
+                  log.warn("{} JWT claim이 숫자 형식이 아님 claim={}", LOG_PREFIX, claimName);
+                  return Long.toString(converted);
+              }
+          }
+          log.warn("{} JWT claim 누락 claim={}", LOG_PREFIX, claimName);
+          throw new IllegalArgumentException(claimName + " claim is missing or blank in JWT");
+
     }
 
 
 }
+

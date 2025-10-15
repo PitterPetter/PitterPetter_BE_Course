@@ -15,11 +15,12 @@ import java.util.List;
 public class Course {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    @GeneratedValue(strategy = GenerationType.UUID)
+    @Column(length = 100)
+    private String id;
 
-    @Column(name = "couple_id", nullable = false)
-    private Long coupleId;
+    @Column(name = "couple_id", nullable = false, length = 100)
+    private String coupleId;
 
     @Column(nullable = false, length = 200)
     private String title;
@@ -41,15 +42,15 @@ public class Course {
     @OneToMany(mappedBy = "course", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<PoiSet> poiSets = new ArrayList<>();
 
-    public Long getId() {
+    public String getId() {
         return id;
     }
 
-    public Long getCoupleId() {
+    public String getCoupleId() {
         return coupleId;
     }
 
-    public void setCoupleId(Long coupleId) {
+    public void setCoupleId(String coupleId) {
         this.coupleId = coupleId;
     }
 

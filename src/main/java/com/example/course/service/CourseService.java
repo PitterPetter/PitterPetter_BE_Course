@@ -40,8 +40,10 @@ public class CourseService {
         this.poiSetRepository = poiSetRepository;
     }
 
+
     public CourseCreationResult createCourse(Long coupleId, CreateCourseRequest request) {
         log.info("{} 코스 생성 요청 coupleId={} title={} poiCount={}", LOG_PREFIX, coupleId, request.getTitle(), request.getData().size());
+
         Course course = new Course();
         course.setCoupleId(coupleId);
         course.setTitle(request.getTitle());
@@ -73,8 +75,10 @@ public class CourseService {
     }
 
     @Transactional(readOnly = true)
-    public List<Course> findCoursesByCoupleId(Long coupleId) {
-        log.info("{} 커플 코스 조회 coupleId={}", LOG_PREFIX, coupleId);
+
+    public List<Course> findCoursesByCoupleId(String coupleId) {
+          log.info("{} 커플 코스 조회 coupleId={}", LOG_PREFIX, coupleId);
+
         List<Course> courses = courseRepository.findAllByCoupleIdWithPoiSets(coupleId);
         if (courses.isEmpty()) {
             log.warn("{} 커플 코스 없음 coupleId={}", LOG_PREFIX, coupleId);
@@ -96,19 +100,22 @@ public class CourseService {
         return courses;
     }
 
-    public void deleteCourse(Long coupleId, Long courseId) {
-        log.info("{} 코스 삭제 요청 coupleId={} courseId={}", LOG_PREFIX, coupleId, courseId);
-        Course course = courseRepository.findByIdAndCoupleId(courseId, coupleId)
-                .orElseThrow(() -> {
-                    log.warn("{} 삭제 대상 코스 없음 coupleId={} courseId={}", LOG_PREFIX, coupleId, courseId);
-                    return new EntityNotFoundException("Course not found for coupleId: " + coupleId + ", courseId: " + courseId);
-                });
-        courseRepository.delete(course);
-        log.info("{} 코스 삭제 완료 coupleId={} courseId={}", LOG_PREFIX, coupleId, courseId);
-    }
 
-    public void updateReviewScore(long userId, long coupleId, long courseId, int reviewScore) {
-        log.info("{} 코스 평점 업데이트 요청 coupleId={} courseId={} userId={} score={}", LOG_PREFIX, coupleId, courseId, userId, reviewScore);
+    public void deleteCourse(String coupleId, String courseId) {
+          log.info("{} 코스 삭제 요청 coupleId={} courseId={}", LOG_PREFIX, coupleId, courseId);
+          Course course = courseRepository.findByIdAndCoupleId(courseId, coupleId)
+                  .orElseThrow(() -> {
+                      log.warn("{} 삭제 대상 코스 없음 coupleId={} courseId={}", LOG_PREFIX, coupleId, courseId);
+                      return new EntityNotFoundException("Course not found for coupleId: " + coupleId + ", courseId: " + courseId);
+                  });
+          courseRepository.delete(course);
+          log.info("{} 코스 삭제 완료 coupleId={} courseId={}", LOG_PREFIX, coupleId, courseId);
+      }
+
+  
+ public void updateReviewScore(String userId, String coupleId, String courseId, int reviewScore) {
+          log.info("{} 코스 평점 업데이트 요청 coupleId={} courseId={} userId={} score={}", LOG_PREFIX, coupleId, courseId, userId, reviewScore);
+   
         Course course = courseRepository.findByIdAndCoupleId(courseId, coupleId)
                 .orElseThrow(() -> {
                     log.warn("{} 평점 업데이트 대상 코스 없음 coupleId={} courseId={}", LOG_PREFIX, coupleId, courseId);
@@ -232,4 +239,5 @@ public class CourseService {
 
     public record CourseCreationResult(Course course, List<PoiSet> poiSets) {
     }
+
 }
