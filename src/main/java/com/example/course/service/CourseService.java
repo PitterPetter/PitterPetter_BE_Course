@@ -41,7 +41,7 @@ public class CourseService {
     }
 
 
-    public CourseCreationResult createCourse(Long coupleId, CreateCourseRequest request) {
+    public CourseCreationResult createCourse(String coupleId, CreateCourseRequest request) {
         log.info("{} 코스 생성 요청 coupleId={} title={} poiCount={}", LOG_PREFIX, coupleId, request.getTitle(), request.getData().size());
 
         Course course = new Course();
