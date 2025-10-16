@@ -90,8 +90,8 @@ public record CreateCourseRequest(
     ) {
         // 데이터 정규화 로직
         public PoiItem normalizeData() {
-            // moodTag가 "0"이면 null로 처리
-            String normalizedMoodTag = "0".equals(this.moodTag) ? null : this.moodTag;
+            // moodTag가 "0"이면 기본값으로 처리
+            String normalizedMoodTag = "0".equals(this.moodTag) ? "default" : this.moodTag;
             
             // alcohol이 null이면 0으로 처리
             Integer normalizedAlcohol = this.alcohol != null ? this.alcohol : 0;
