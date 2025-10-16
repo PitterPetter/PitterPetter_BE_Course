@@ -75,15 +75,15 @@ public class CourseService {
     }
 
     @Transactional(readOnly = true)
-
     public List<Course> findCoursesByCoupleId(String coupleId) {
-          log.info("{} 커플 코스 조회 coupleId={}", LOG_PREFIX, coupleId);
+        log.info("{} 커플 코스 조회 coupleId={}", LOG_PREFIX, coupleId);
 
         List<Course> courses = courseRepository.findAllByCoupleIdWithPoiSets(coupleId);
         if (courses.isEmpty()) {
-            log.warn("{} 커플 코스 없음 coupleId={}", LOG_PREFIX, coupleId);
-            throw new EntityNotFoundException("Courses not found for coupleId: " + coupleId);
+            log.info("{} 커플 코스 없음 - 빈 리스트 반환 coupleId={}", LOG_PREFIX, coupleId);
+            return new ArrayList<>();
         }
+        
         log.info("{} 커플 코스 조회 완료 coupleId={} courseCount={}", LOG_PREFIX, coupleId, courses.size());
         Comparator<PoiSet> orderComparator = Comparator
                 .comparing(PoiSet::getOrderIndex, Comparator.nullsLast(Comparator.naturalOrder()))
