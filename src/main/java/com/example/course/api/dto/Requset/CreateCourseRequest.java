@@ -11,149 +11,106 @@ import java.util.Map;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 @Schema(description = "Request payload for creating a new course")
-public class CreateCourseRequest {
-
+public record CreateCourseRequest(
     @NotBlank
     @Size(min = 1, max = 200)
     @Schema(description = "Title of the course", example = "한강 저녁 데이터 ")
-    private String title;
+    String title,
 
     @NotBlank
     @Size(min = 1, max = 1000)
     @Schema(description = "Description of the course", example = "오늘 무드에 맞는 코스입니다~ ")
-    private String explain;
+    String explain,
 
     @NotNull
     @Size(min = 1)
     @Valid
     @Schema(description = "Ordered POI list that composes the course")
-    private List<PoiItem> data;
-
-    public String getTitle() {
-        return title;
-    }
-
-    public String getExplain() {
-        return explain;
-    }
-
-    public List<PoiItem> getData() {
-        return data;
-    }
-
+    List<PoiItem> data
+) {
     @JsonIgnoreProperties(ignoreUnknown = true)
-    public static class PoiItem {
-
+    public record PoiItem(
         @Schema(description = "Sequence order of the POI in the course", example = "1")
-        private Integer seq;
+        Integer seq,
 
         @NotBlank
         @Size(min = 1, max = 200)
         @Schema(description = "POI name", example = "Blue Bottle Yeonnam")
-        private String name;
+        String name,
 
         @NotNull
         @Schema(description = "POI category", example = "CAFE")
-        private Category category;
+        Category category,
 
         @NotNull
         @DecimalMin(value = "-90.0")
         @DecimalMax(value = "90.0")
         @Schema(description = "Latitude", example = "37.56231")
-        private Double lat;
+        Double lat,
 
         @NotNull
         @DecimalMin(value = "-180.0")
         @DecimalMax(value = "180.0")
         @Schema(description = "Longitude", example = "126.92501")
-        private Double lng;
+        Double lng,
 
         @NotNull
         @Schema(description = "Indoor availability", example = "true")
-        private Boolean indoor;
+        Boolean indoor,
 
         @Min(0)
         @Max(4)
         @Schema(description = "Price level", example = "2")
-        private Integer priceLevel;
+        Integer priceLevel,
 
         @Schema(description = "Opening hours map", example = "{\"mon\":\"09:00-18:00\"}")
-        private Map<String, String> openHours;
+        Map<String, String> openHours,
 
         @Min(0)
         @Max(2)
         @Schema(description = "Alcohol availability", example = "0")
-        private Integer alcohol;
+        Integer alcohol,
 
-        @NotBlank
         @Size(max = 50)
-        @Pattern(regexp = "[a-z][a-zA-Z0-9]*", message = "must be camelCase alphanumeric")
         @Schema(description = "Mood tag identifier in camelCase", example = "warmVibes")
-        private String moodTag;
+        String moodTag,
 
         @Size(max = 20)
         @Schema(description = "Food tags", example = "[\"coffee\", \"dessert\"]")
-        private List<@Size(min = 1, max = 30) String> foodTag;
+        List<@Size(min = 1, max = 30) String> foodTag,
 
         @DecimalMin(value = "0.0")
         @DecimalMax(value = "5.0")
         @Schema(description = "Average rating", example = "4.3")
-        private Double ratingAvg;
+        Double ratingAvg,
 
         @Pattern(regexp = "^$|https?://.+", message = "must be a valid URL")
         @Schema(description = "External link", example = "https://example.com")
-        private String link;
-
-        public Integer getSeq() {
-            return seq;
-        }
-
-        public String getName() {
-            return name;
-        }
-
-        public Category getCategory() {
-            return category;
-        }
-
-        public Double getLat() {
-            return lat;
-        }
-
-        public Double getLng() {
-            return lng;
-        }
-
-        public Boolean getIndoor() {
-            return indoor;
-        }
-
-        public Integer getPriceLevel() {
-            return priceLevel;
-        }
-
-        public Map<String, String> getOpenHours() {
-            return openHours;
-        }
-
-        public Integer getAlcohol() {
-            return alcohol;
-        }
-
-        public String getMoodTag() {
-            return moodTag;
-        }
-
-        public List<String> getFoodTag() {
-            return foodTag;
-        }
-
-        public Double getRatingAvg() {
-            return ratingAvg;
-        }
-
-        public String getLink() {
-            return link;
+        String link
+    ) {
+        // 데이터 정규화 로직
+        public PoiItem normalizeData() {
+            // moodTag가 "0"이면 null로 처리
+            String normalizedMoodTag = "0".equals(this.moodTag) ? null : this.moodTag;
+            
+            // alcohol이 null이면 0으로 처리
+            Integer normalizedAlcohol = this.alcohol != null ? this.alcohol : 0;
+            
+            return new PoiItem(
+                this.seq,
+                this.name,
+                this.category,
+                this.lat,
+                this.lng,
+                this.indoor,
+                this.priceLevel,
+                this.openHours,
+                normalizedAlcohol,
+                normalizedMoodTag,
+                this.foodTag,
+                this.ratingAvg,
+                this.link
+            );
         }
     }
 }

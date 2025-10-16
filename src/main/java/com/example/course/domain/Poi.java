@@ -177,4 +177,22 @@ public class Poi {
     public Instant getUpdatedAt() {
         return updatedAt;
     }
+
+    /**
+     * 다른 POI의 데이터로 업데이트
+     */
+    public void updateFrom(Poi other) {
+        this.name = other.name;
+        this.category = other.category;
+        this.lat = other.lat;
+        this.lng = other.lng;
+        this.indoor = other.indoor;
+        this.priceLevel = other.priceLevel;
+        this.openHours = other.openHours;
+        this.alcohol = other.alcohol;
+        this.moodTag = other.moodTag;
+        this.foodTag = other.foodTag;
+        this.ratingAvg = other.ratingAvg;
+        this.link = other.link;
+    }
 }

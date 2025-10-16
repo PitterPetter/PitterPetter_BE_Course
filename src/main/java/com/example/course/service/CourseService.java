@@ -5,6 +5,7 @@ import com.example.course.api.dto.Requset.CreateCourseRequest.PoiItem;
 import com.example.course.domain.Course;
 import com.example.course.domain.Poi;
 import com.example.course.domain.PoiSet;
+import com.example.course.domain.service.CourseDomainService;
 import com.example.course.repository.CourseRepository;
 import com.example.course.repository.PoiRepository;
 import com.example.course.repository.PoiSetRepository;
@@ -12,11 +13,7 @@ import jakarta.persistence.EntityNotFoundException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.StringUtils;
 
-import java.time.LocalTime;
-import java.time.format.DateTimeFormatter;
-import java.time.format.DateTimeParseException;
 import java.util.*;
 
 @Service
@@ -24,41 +21,47 @@ import java.util.*;
 @Slf4j
 public class CourseService {
 
-    private static final Set<String> VALID_DAYS = Set.of("mon", "tue", "wed", "thu", "fri", "sat", "sun");
-    private static final DateTimeFormatter TIME_FORMATTER = DateTimeFormatter.ofPattern("HH:mm");
     private static final String LOG_PREFIX = "[CourseService]";
 
     private final CourseRepository courseRepository;
     private final PoiRepository poiRepository;
     private final PoiSetRepository poiSetRepository;
+    private final CourseDomainService courseDomainService;
 
     public CourseService(CourseRepository courseRepository,
                          PoiRepository poiRepository,
-                         PoiSetRepository poiSetRepository) {
+                         PoiSetRepository poiSetRepository,
+                         CourseDomainService courseDomainService) {
         this.courseRepository = courseRepository;
         this.poiRepository = poiRepository;
         this.poiSetRepository = poiSetRepository;
+        this.courseDomainService = courseDomainService;
     }
 
 
     public CourseCreationResult createCourse(String coupleId, CreateCourseRequest request) {
-        log.info("{} 코스 생성 요청 coupleId={} title={} poiCount={}", LOG_PREFIX, coupleId, request.getTitle(), request.getData().size());
+        log.info("{} 코스 생성 요청 coupleId={} title={} poiCount={}", LOG_PREFIX, coupleId, request.title(), request.data().size());
 
+        // 도메인 검증
+        courseDomainService.validateCourseCreation(coupleId, request.title(), request.data());
+
+        // 코스 생성 및 초기화
         Course course = new Course();
-        course.setCoupleId(coupleId);
-        course.setTitle(request.getTitle());
-        course.setDescription(request.getExplain());
-        course.setScore(0L);
+        course.initialize(coupleId, request.title(), request.explain());
 
         Course persistedCourse = courseRepository.save(course);
         log.info("{} 코스 저장 완료 courseId={} coupleId={}", LOG_PREFIX, persistedCourse.getId(), coupleId);
 
+        // POI 처리
         List<PoiSet> poiSets = new ArrayList<>();
-        List<PoiItem> items = request.getData();
+        List<PoiItem> items = request.data();
         for (int i = 0; i < items.size(); i++) {
             PoiItem item = items.get(i);
-            Poi poi = upsertPoi(item);
-            Integer order = item.getSeq() != null ? item.getSeq() : i + 1;
+            // 데이터 정규화 수행
+            PoiItem normalizedItem = item.normalizeData();
+            
+            Poi poi = upsertPoi(normalizedItem);
+            Integer order = normalizedItem.seq() != null ? normalizedItem.seq() : i + 1;
 
             PoiSet poiSet = new PoiSet();
             poiSet.setCourse(persistedCourse);
@@ -126,116 +129,27 @@ public class CourseService {
     }
 
     private Poi upsertPoi(PoiItem item) {
-        Optional<Poi> existingOptional = poiRepository.findByNameAndLatAndLng(item.getName(), item.getLat(), item.getLng());
+        Optional<Poi> existingOptional = poiRepository.findByNameAndLatAndLng(item.name(), item.lat(), item.lng());
         if (existingOptional.isPresent()) {
             Poi existing = existingOptional.get();
-            log.info("{} POI 업데이트 name={} lat={} lng={} poiId={}", LOG_PREFIX, item.getName(), item.getLat(), item.getLng(), existing.getId());
-            applyMandatoryPoiFields(existing, item);
-            applyOptionalPoiFields(existing, item);
+            log.info("{} POI 업데이트 name={} lat={} lng={} poiId={}", LOG_PREFIX, item.name(), item.lat(), item.lng(), existing.getId());
+            
+            // 도메인 서비스를 통한 POI 데이터 정규화
+            Poi normalizedPoi = courseDomainService.normalizePoiData(item);
+            existing.updateFrom(normalizedPoi);
+            
             Poi updated = poiRepository.save(existing);
             log.info("{} POI 업데이트 완료 poiId={}", LOG_PREFIX, updated.getId());
             return updated;
         }
 
-        Poi poi = new Poi();
-        applyMandatoryPoiFields(poi, item);
-        applyOptionalPoiFields(poi, item);
+        // 도메인 서비스를 통한 POI 데이터 정규화
+        Poi poi = courseDomainService.normalizePoiData(item);
         Poi saved = poiRepository.save(poi);
-        log.info("{} 신규 POI 저장 name={} poiId={}", LOG_PREFIX, item.getName(), saved.getId());
+        log.info("{} 신규 POI 저장 name={} poiId={}", LOG_PREFIX, item.name(), saved.getId());
         return saved;
     }
 
-    private void applyMandatoryPoiFields(Poi poi, PoiItem item) {
-        poi.setName(item.getName());
-        poi.setCategory(item.getCategory());
-        poi.setLat(item.getLat());
-        poi.setLng(item.getLng());
-        poi.setIndoor(item.getIndoor());
-        String moodTag = StringUtils.trimWhitespace(item.getMoodTag());
-        poi.setMoodTag(moodTag);
-    }
-
-    private void applyOptionalPoiFields(Poi poi, PoiItem item) {
-        if (item.getPriceLevel() != null) {
-            poi.setPriceLevel(item.getPriceLevel());
-        }
-        if (item.getAlcohol() != null) {
-            poi.setAlcohol(item.getAlcohol());
-        }
-        if (item.getRatingAvg() != null) {
-            poi.setRatingAvg(item.getRatingAvg());
-        }
-        if (item.getOpenHours() != null) {
-            poi.setOpenHours(sanitizedOpenHours(item.getOpenHours()));
-        }
-        if (item.getFoodTag() != null) {
-            List<String> sanitizedTags = item.getFoodTag().stream()
-                    .filter(StringUtils::hasText)
-                    .map(StringUtils::trimWhitespace)
-                    .toList();
-            poi.setFoodTag(sanitizedTags);
-        }
-        if (item.getLink() != null) {
-            String normalizedLink = normalizeLink(item.getLink());
-            poi.setLink(normalizedLink);
-        }
-    }
-
-    private String normalizeLink(String link) {
-        String trimmed = StringUtils.trimWhitespace(link);
-        return StringUtils.hasText(trimmed) ? trimmed : null;
-    }
-
-    private Map<String, String> sanitizedOpenHours(Map<String, String> openHours) {
-        if (openHours == null || openHours.isEmpty()) {
-            return Map.of();
-        }
-        Map<String, String> sanitized = new LinkedHashMap<>();
-        openHours.forEach((day, rawRange) -> {
-            if (day == null || rawRange == null) {
-                log.warn("{} 영업시간 항목 무시 day={} raw={} (null)", LOG_PREFIX, day, rawRange);
-                return;
-            }
-            String normalizedDay = day.trim().toLowerCase();
-            if (!VALID_DAYS.contains(normalizedDay)) {
-                log.warn("{} 유효하지 않은 요일 값 day={}", LOG_PREFIX, day);
-                return;
-            }
-            String trimmedValue = rawRange.trim();
-            if (trimmedValue.equalsIgnoreCase("Closed")) {
-                sanitized.put(normalizedDay, "Closed");
-            } else {
-                sanitized.put(normalizedDay, normalizeTimeRange(trimmedValue));
-            }
-        });
-        return sanitized;
-    }
-
-    private String normalizeTimeRange(String value) {
-        String[] times = value.split("-");
-        if (times.length != 2) {
-            log.warn("{} 영업시간 포맷이 잘못됨 value={} (하이픈 미존재)", LOG_PREFIX, value);
-            return value;
-        }
-        String start = times[0].trim();
-        String end = times[1].trim();
-        try {
-            LocalTime open = LocalTime.parse(start, TIME_FORMATTER);
-            start = TIME_FORMATTER.format(open);
-        } catch (DateTimeParseException ignored) {
-            log.warn("{} 시작 시간 파싱 실패 value={}", LOG_PREFIX, start);
-        }
-        if (end.equals("24:00")) {
-            return start + "-24:00";
-        }
-        try {
-            LocalTime close = LocalTime.parse(end, TIME_FORMATTER);
-            end = TIME_FORMATTER.format(close);
-        } catch (DateTimeParseException ignored) {
-            log.warn("{} 종료 시간 파싱 실패 value={}", LOG_PREFIX, end);
-        }
-        return start + '-' + end;
-    }
 
     public record CourseCreationResult(Course course, List<PoiSet> poiSets) {
     }

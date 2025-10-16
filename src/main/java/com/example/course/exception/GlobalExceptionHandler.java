@@ -22,6 +22,13 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ErrorResponse> handleValidation(MethodArgumentNotValidException ex) {
         log.warn("[GlobalExceptionHandler] 요청 검증 실패 fieldErrors={}", ex.getBindingResult().getFieldErrors().size());
+        
+        // 상세 검증 오류 로그 출력
+        ex.getBindingResult().getFieldErrors().forEach(error -> {
+            log.warn("[GlobalExceptionHandler] 검증 실패 필드: {}={}, 메시지: {}", 
+                error.getField(), error.getRejectedValue(), error.getDefaultMessage());
+        });
+        
         List<FieldErrorResponse> errors = ex.getBindingResult()
                 .getFieldErrors()
                 .stream()
