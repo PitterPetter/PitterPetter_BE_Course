@@ -59,7 +59,7 @@ public record CreateCourseRequest(
         Boolean indoor,
 
         @Min(0)
-        @Max(4)
+        @Max(5)
         @Schema(description = "Price level", example = "2")
         Integer priceLevel,
 
