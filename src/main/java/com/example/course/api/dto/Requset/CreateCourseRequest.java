@@ -67,7 +67,7 @@ public record CreateCourseRequest(
         Map<String, String> openHours,
 
         @Min(0)
-        @Max(2)
+        @Max(5)
         @Schema(description = "Alcohol availability", example = "0")
         Integer alcohol,
 
