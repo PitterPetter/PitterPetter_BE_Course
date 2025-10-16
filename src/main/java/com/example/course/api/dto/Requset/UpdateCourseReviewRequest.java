@@ -8,15 +8,10 @@ import jakarta.validation.constraints.NotNull;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 @Schema(description = "Payload for updating a course review score")
-public class UpdateCourseReviewRequest {
-
+public record UpdateCourseReviewRequest(
     @NotNull
     @Min(1)
     @Max(5)
     @Schema(description = "Course review score between 1 and 5", example = "5")
-    private Integer reviewScore;
-
-    public Integer getReviewScore() {
-        return reviewScore;
-    }
-}
+    Integer reviewScore
+) {}

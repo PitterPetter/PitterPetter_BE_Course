@@ -177,7 +177,7 @@ public class CourseController {
     ) {
         String userId = requireUserId(jwt);
         String coupleId = requireCoupleId(jwt);
-        courseService.updateReviewScore(userId, coupleId, courseId, request.getReviewScore());
+        courseService.updateReviewScore(userId, coupleId, courseId, request.reviewScore());
         return StatusResponse.success();
     }
 
