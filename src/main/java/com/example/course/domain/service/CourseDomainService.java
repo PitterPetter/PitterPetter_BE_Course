@@ -61,10 +61,7 @@ public class CourseDomainService {
             throw new IllegalArgumentException("Indoor flag cannot be null at index " + index);
         }
         
-        // moodTag 검증 (null이 아닌 경우에만)
-        if (item.moodTag() != null && !item.moodTag().matches("[a-z][a-zA-Z0-9]*")) {
-            throw new IllegalArgumentException("moodTag must be camelCase alphanumeric at index " + index + ": " + item.moodTag());
-        }
+        // moodTag 검증은 정규화 후에 수행됨
     }
 
     /**

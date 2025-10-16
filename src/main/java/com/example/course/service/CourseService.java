@@ -60,6 +60,11 @@ public class CourseService {
             // 데이터 정규화 수행
             PoiItem normalizedItem = item.normalizeData();
             
+            // 정규화 후 moodTag 검증 (null이 아닌 경우에만)
+            if (normalizedItem.moodTag() != null && !normalizedItem.moodTag().matches("[a-z][a-zA-Z0-9]*")) {
+                throw new IllegalArgumentException("moodTag must be camelCase alphanumeric at index " + i + ": " + normalizedItem.moodTag());
+            }
+            
             Poi poi = upsertPoi(normalizedItem);
             Integer order = normalizedItem.seq() != null ? normalizedItem.seq() : i + 1;
 
