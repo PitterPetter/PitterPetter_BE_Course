@@ -15,6 +15,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
+import java.util.regex.Pattern;
 
 @Service
 @Transactional
@@ -27,6 +28,8 @@ public class CourseService {
     private final PoiRepository poiRepository;
     private final PoiSetRepository poiSetRepository;
     private final CourseDomainService courseDomainService;
+
+    private static final Pattern MOOD_TAG_PATTERN = Pattern.compile("^[\\p{L}\\p{N}\\s,\-]+$");
 
     public CourseService(CourseRepository courseRepository,
                          PoiRepository poiRepository,
@@ -59,14 +62,12 @@ public class CourseService {
             PoiItem item = items.get(i);
             // 데이터 정규화 수행
             PoiItem normalizedItem = item.normalizeData();
-            
-            // 정규화 후 moodTag 검증 (null이 아닌 경우에만)
-            if (normalizedItem.moodTag() != null && !normalizedItem.moodTag().matches("[a-z][a-zA-Z0-9]*")) {
-                throw new IllegalArgumentException("moodTag must be camelCase alphanumeric at index " + i + ": " + normalizedItem.moodTag());
-            }
-            
-            Poi poi = upsertPoi(normalizedItem);
-            Integer order = normalizedItem.seq() != null ? normalizedItem.seq() : i + 1;
+
+            // moodTag 유효성 및 정규화 처리
+            PoiItem sanitizedItem = sanitizeMoodTag(normalizedItem, i);
+
+            Poi poi = upsertPoi(sanitizedItem);
+            Integer order = sanitizedItem.seq() != null ? sanitizedItem.seq() : i + 1;
 
             PoiSet poiSet = new PoiSet();
             poiSet.setCourse(persistedCourse);
@@ -153,6 +154,40 @@ public class CourseService {
         Poi saved = poiRepository.save(poi);
         log.info("{} 신규 POI 저장 name={} poiId={}", LOG_PREFIX, item.name(), saved.getId());
         return saved;
+    }
+
+    private PoiItem sanitizeMoodTag(PoiItem item, int index) {
+        String moodTag = item.moodTag();
+        if (moodTag == null) {
+            return item;
+        }
+
+        String trimmed = moodTag.trim();
+        if (trimmed.isEmpty()) {
+            throw new IllegalArgumentException("moodTag cannot be blank at index " + index);
+        }
+        if (trimmed.length() > 50) {
+            throw new IllegalArgumentException("moodTag length must be <= 50 at index " + index + ": " + trimmed.length());
+        }
+        if (!MOOD_TAG_PATTERN.matcher(trimmed).matches()) {
+            throw new IllegalArgumentException("moodTag contains invalid characters at index " + index + ": " + moodTag);
+        }
+
+        return new PoiItem(
+                item.seq(),
+                item.name(),
+                item.category(),
+                item.lat(),
+                item.lng(),
+                item.indoor(),
+                item.priceLevel(),
+                item.openHours(),
+                item.alcohol(),
+                trimmed,
+                item.foodTag(),
+                item.ratingAvg(),
+                item.link()
+        );
     }
 
 
