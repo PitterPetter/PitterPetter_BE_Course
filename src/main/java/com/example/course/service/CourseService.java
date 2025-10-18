@@ -29,7 +29,7 @@ public class CourseService {
     private final PoiSetRepository poiSetRepository;
     private final CourseDomainService courseDomainService;
 
-    private static final Pattern MOOD_TAG_PATTERN = Pattern.compile("^[\\p{L}\\p{N}\\s,\-]+$");
+    private static final Pattern MOOD_TAG_PATTERN = Pattern.compile("^[-\\p{L}\\p{N}\\s,]+$");
 
     public CourseService(CourseRepository courseRepository,
                          PoiRepository poiRepository,
@@ -172,6 +172,8 @@ public class CourseService {
         if (!MOOD_TAG_PATTERN.matcher(trimmed).matches()) {
             throw new IllegalArgumentException("moodTag contains invalid characters at index " + index + ": " + moodTag);
         }
+
+        log.info("{} ✨ moodTag sanitized index={} value={}", LOG_PREFIX, index, trimmed);
 
         return new PoiItem(
                 item.seq(),
