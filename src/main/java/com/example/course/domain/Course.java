@@ -10,7 +10,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Entity
-@Table(name = "course")
+@Table(name = "course", indexes = {
+    @Index(name = "idx_course_couple_id", columnList = "couple_id"),
+    @Index(name = "idx_course_couple_created", columnList = "couple_id, created_at")
+})
 @EntityListeners(AuditingEntityListener.class)
 public class Course {
 

@@ -14,7 +14,14 @@ import java.util.List;
 import java.util.Map;
 
 @Entity
-@Table(name = "poi", uniqueConstraints = @UniqueConstraint(columnNames = {"name", "lat", "lng"}))
+@Table(name = "poi", 
+    uniqueConstraints = @UniqueConstraint(columnNames = {"name", "lat", "lng"}),
+    indexes = {
+        @Index(name = "idx_poi_category", columnList = "category"),
+        @Index(name = "idx_poi_mood_tag", columnList = "mood_tag"),
+        @Index(name = "idx_poi_location", columnList = "lat, lng")
+    }
+)
 @EntityListeners(AuditingEntityListener.class)
 public class Poi {
 
