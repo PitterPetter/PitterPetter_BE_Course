@@ -7,7 +7,10 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 import java.time.Instant;
 
 @Entity
-@Table(name = "poi_set")
+@Table(name = "poi_set", indexes = {
+    @Index(name = "idx_poi_set_course_order", columnList = "course_id, \"order\""),
+    @Index(name = "idx_poi_set_poi", columnList = "poi_id")
+})
 @EntityListeners(AuditingEntityListener.class)
 public class PoiSet {
 

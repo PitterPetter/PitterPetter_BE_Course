@@ -43,7 +43,8 @@ public class CourseService {
 
 
     public CourseCreationResult createCourse(String coupleId, CreateCourseRequest request) {
-        log.info("{} 코스 생성 요청 coupleId={} title={} poiCount={}", LOG_PREFIX, coupleId, request.title(), request.data().size());
+        long startTime = System.currentTimeMillis();
+        log.info("{} 코스 생성 시작 coupleId={} title={} poiCount={}", LOG_PREFIX, coupleId, request.title(), request.data().size());
 
         // 도메인 검증
         courseDomainService.validateCourseCreation(coupleId, request.title(), request.data());
@@ -80,6 +81,9 @@ public class CourseService {
         }
 
         persistedCourse.getPoiSets().addAll(poiSets);
+        
+        long endTime = System.currentTimeMillis();
+        log.info("{} 코스 생성 완료 courseId={} 처리시간={}ms", LOG_PREFIX, persistedCourse.getId(), endTime - startTime);
         return new CourseCreationResult(persistedCourse, poiSets);
     }
 
@@ -138,7 +142,7 @@ public class CourseService {
         Optional<Poi> existingOptional = poiRepository.findByNameAndLatAndLng(item.name(), item.lat(), item.lng());
         if (existingOptional.isPresent()) {
             Poi existing = existingOptional.get();
-            log.info("{} POI 업데이트 name={} lat={} lng={} poiId={}", LOG_PREFIX, item.name(), item.lat(), item.lng(), existing.getId());
+            log.info("{} POI 중복 감지 - 업데이트 name={} lat={} lng={} poiId={}", LOG_PREFIX, item.name(), item.lat(), item.lng(), existing.getId());
             
             // 도메인 서비스를 통한 POI 데이터 정규화
             Poi normalizedPoi = courseDomainService.normalizePoiData(item);
@@ -152,7 +156,7 @@ public class CourseService {
         // 도메인 서비스를 통한 POI 데이터 정규화
         Poi poi = courseDomainService.normalizePoiData(item);
         Poi saved = poiRepository.save(poi);
-        log.info("{} 신규 POI 저장 name={} poiId={}", LOG_PREFIX, item.name(), saved.getId());
+        log.info("{} 신규 POI 생성 name={} poiId={}", LOG_PREFIX, item.name(), saved.getId());
         return saved;
     }
 
