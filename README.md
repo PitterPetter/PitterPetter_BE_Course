@@ -1,4 +1,4 @@
-# 💌 PitterPetter Course Service
+# 💌 Loveventure Course Service
 
 ## 📌 서비스 개요
 
